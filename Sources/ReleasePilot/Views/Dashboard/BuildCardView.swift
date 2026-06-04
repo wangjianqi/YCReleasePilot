@@ -2,6 +2,10 @@ import SwiftUI
 
 struct BuildCardView: View {
     let builds: [BuildInfo]
+    let showAllBuilds: Bool
+    let onToggleBuilds: () -> Void
+    let onShowAllVersions: () -> Void
+    let onShowBuildDetail: (BuildInfo) -> Void
 
     var body: some View {
         GlassCard {
@@ -10,7 +14,7 @@ struct BuildCardView: View {
                     Text(AppStrings.currentBuild)
                         .font(.headline)
                     Spacer()
-                    SmallGlassButton(title: "查看全部")
+                    SmallGlassButton(title: showAllBuilds ? "收起" : "查看全部", action: onToggleBuilds)
                 }
 
                 if let current = builds.first {
@@ -23,24 +27,29 @@ struct BuildCardView: View {
                     .padding(.top, 2)
 
                 ForEach(builds.dropFirst()) { build in
-                    HStack {
-                        Text("\(build.id)")
-                            .font(.caption.weight(.bold))
-                            .frame(width: 30, alignment: .leading)
-                        Text(build.version)
-                            .font(.caption)
-                        Spacer()
-                        Text(build.uploadedAt)
-                            .font(.caption2)
-                            .foregroundStyle(Theme.ColorToken.muted)
-                        Text(build.size)
-                            .font(.caption2)
-                            .foregroundStyle(Theme.ColorToken.muted)
+                    Button {
+                        onShowBuildDetail(build)
+                    } label: {
+                        HStack {
+                            Text("\(build.id)")
+                                .font(.caption.weight(.bold))
+                                .frame(width: 30, alignment: .leading)
+                            Text(build.version)
+                                .font(.caption)
+                            Spacer()
+                            Text(build.uploadedAt)
+                                .font(.caption2)
+                                .foregroundStyle(Theme.ColorToken.muted)
+                            Text(build.size)
+                                .font(.caption2)
+                                .foregroundStyle(Theme.ColorToken.muted)
+                        }
                     }
+                    .buttonStyle(.plain)
                     .padding(.vertical, 5)
                 }
 
-                SmallGlassButton(title: "查看更多版本", systemImage: "arrow.right")
+                SmallGlassButton(title: "查看更多版本", systemImage: "arrow.right", action: onShowAllVersions)
                     .frame(maxWidth: .infinity)
             }
         }
@@ -58,7 +67,9 @@ struct BuildCardView: View {
             infoRow("上传时间", build.uploadedAt)
             infoRow("大小", build.size)
             infoRow("处理状态", build.status, tint: Theme.ColorToken.green)
-            SmallGlassButton(title: "查看构建详情")
+            SmallGlassButton(title: "查看构建详情") {
+                onShowBuildDetail(build)
+            }
                 .frame(maxWidth: .infinity)
         }
         .padding(12)

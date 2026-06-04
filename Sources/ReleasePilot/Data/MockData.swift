@@ -2,98 +2,80 @@ import SwiftUI
 
 enum MockData {
     static let releases: [AppReleaseMock] = [
-        release(
-            app: AppItem(id: "faceblur", name: "FaceBlur", version: "2.1.0", buildNumber: 47, iconSymbol: "person.crop.square.fill", iconGradient: [Color(hex: 0xF6C7A7), Theme.ColorToken.purple], readiness: 92, passRate: 87, reviewHours: "24 – 48", aiScore: 85, status: "Ready for Review"),
-            metadata: AppMetadata(
-                subtitle: "AI portrait blur editor",
-                keywords: ["AI", "portrait", "blur", "photo", "beauty", "blur"],
-                description: "FaceBlur helps creators blur portraits and refine background depth locally.",
-                releaseNotes: "Improved portrait segmentation and screenshot workflow.",
-                reviewNote: ""
-            ),
-            buildStart: 47,
-            size: "38.4 MB",
-            incomplete: [.screenshots, .reviewInfo],
-            screenshotWarningSlot: 3,
-            suggestions: [
-                SuggestionItem(title: "第 3 张截图文案区域过大", impact: "低影响", tint: Theme.ColorToken.green),
-                SuggestionItem(title: "关键词重复率较高", impact: "中影响", tint: Theme.ColorToken.orange),
-                SuggestionItem(title: "副标题利用率只有 60%", impact: "中影响", tint: Theme.ColorToken.orange)
-            ]
+        appRelease(
+            id: "faceblur",
+            name: "FaceBlur",
+            version: "2.1.0",
+            build: 47,
+            symbol: "person.crop.square.fill",
+            gradient: [Color(hex: 0xF6C7A7), Theme.ColorToken.purple],
+            baseReadiness: 92,
+            passRate: 87,
+            reviewHours: "24 – 48",
+            aiScore: 85,
+            status: "Ready for Review",
+            keywords: ["AI", "portrait", "blur", "photo", "beauty", "blur"],
+            incompleteByPlatform: [.iOS: [.screenshots, .reviewInfo], .iPadOS: [.screenshots, .reviewInfo], .macOS: [.reviewInfo]]
         ),
-        release(
-            app: AppItem(id: "snapedit", name: "SnapEdit", version: "1.8.3", buildNumber: 36, iconSymbol: "camera.aperture", iconGradient: [Color(hex: 0x10B981), Color(hex: 0x22D3EE)], readiness: 78, passRate: 76, reviewHours: "36 – 60", aiScore: 78, status: "Metadata Draft"),
-            metadata: AppMetadata(
-                subtitle: "Fast camera retouching",
-                keywords: ["camera", "retouch", "filter", "photo", "editor", "camera"],
-                description: "SnapEdit provides fast camera retouching and export presets.",
-                releaseNotes: "Added faster export presets for social media.",
-                reviewNote: ""
-            ),
-            buildStart: 36,
-            size: "42.2 MB",
-            incomplete: [.metadata, .screenshots, .reviewInfo],
-            screenshotWarningSlot: 2,
-            suggestions: [
-                SuggestionItem(title: "关键词 camera 重复出现", impact: "中影响", tint: Theme.ColorToken.orange),
-                SuggestionItem(title: "描述缺少隐私处理说明", impact: "高影响", tint: Theme.ColorToken.red),
-                SuggestionItem(title: "截图缺少横向场景", impact: "低影响", tint: Theme.ColorToken.green)
-            ]
+        appRelease(
+            id: "snapedit",
+            name: "SnapEdit",
+            version: "1.8.3",
+            build: 36,
+            symbol: "camera.aperture",
+            gradient: [Color(hex: 0x10B981), Color(hex: 0x22D3EE)],
+            baseReadiness: 78,
+            passRate: 76,
+            reviewHours: "36 – 60",
+            aiScore: 78,
+            status: "Metadata Draft",
+            keywords: ["camera", "retouch", "filter", "photo", "editor", "camera"],
+            incompleteByPlatform: [.iOS: [.metadata, .screenshots, .reviewInfo], .iPadOS: [.metadata, .screenshots], .macOS: [.metadata, .reviewInfo]]
         ),
-        release(
-            app: AppItem(id: "videomagic", name: "VideoMagic", version: "3.2.1", buildNumber: 105, iconSymbol: "play.rectangle.fill", iconGradient: [Color(hex: 0xFDE047), Color(hex: 0x7C3AED)], readiness: 84, passRate: 81, reviewHours: "24 – 72", aiScore: 80, status: "Ready for Review"),
-            metadata: AppMetadata(
-                subtitle: "Magic video templates",
-                keywords: ["video", "template", "cut", "caption", "reels", "video"],
-                description: "VideoMagic turns clips into polished templates with local previews.",
-                releaseNotes: "New caption templates and faster timeline previews.",
-                reviewNote: "Demo account is not required. All editing features can be tested with bundled sample media."
-            ),
-            buildStart: 105,
-            size: "128.6 MB",
-            incomplete: [.screenshots],
-            screenshotWarningSlot: 4,
-            suggestions: [
-                SuggestionItem(title: "Mac 截图仍缺少编辑器全景", impact: "中影响", tint: Theme.ColorToken.orange),
-                SuggestionItem(title: "副标题可强化模板卖点", impact: "低影响", tint: Theme.ColorToken.green)
-            ]
+        appRelease(
+            id: "videomagic",
+            name: "VideoMagic",
+            version: "3.2.1",
+            build: 105,
+            symbol: "play.rectangle.fill",
+            gradient: [Color(hex: 0xFDE047), Color(hex: 0x7C3AED)],
+            baseReadiness: 84,
+            passRate: 81,
+            reviewHours: "24 – 72",
+            aiScore: 80,
+            status: "Ready for Review",
+            keywords: ["video", "template", "cut", "caption", "reels", "video"],
+            incompleteByPlatform: [.iOS: [.screenshots], .iPadOS: [.screenshots], .macOS: []]
         ),
-        release(
-            app: AppItem(id: "tuneflow", name: "TuneFlow", version: "1.4.0", buildNumber: 23, iconSymbol: "music.note.list", iconGradient: [Color(hex: 0x14B8A6), Color(hex: 0x0EA5E9)], readiness: 68, passRate: 69, reviewHours: "48 – 72", aiScore: 73, status: "Needs Work"),
-            metadata: AppMetadata(
-                subtitle: "Music planning workspace",
-                keywords: ["music", "playlist", "timer", "mix", "flow", "playlist"],
-                description: "TuneFlow organizes music planning and lightweight playlist notes.",
-                releaseNotes: "Improved playlist planning and timeline markers.",
-                reviewNote: ""
-            ),
-            buildStart: 23,
-            size: "55.8 MB",
-            incomplete: [.metadata, .screenshots, .reviewInfo, .privacy],
-            screenshotWarningSlot: 1,
-            suggestions: [
-                SuggestionItem(title: "隐私合规说明缺少音频权限用途", impact: "高影响", tint: Theme.ColorToken.red),
-                SuggestionItem(title: "关键词 playlist 重复率偏高", impact: "中影响", tint: Theme.ColorToken.orange),
-                SuggestionItem(title: "更新说明过短", impact: "低影响", tint: Theme.ColorToken.green)
-            ]
+        appRelease(
+            id: "tuneflow",
+            name: "TuneFlow",
+            version: "1.4.0",
+            build: 23,
+            symbol: "music.note.list",
+            gradient: [Color(hex: 0x14B8A6), Color(hex: 0x0EA5E9)],
+            baseReadiness: 68,
+            passRate: 69,
+            reviewHours: "48 – 72",
+            aiScore: 73,
+            status: "Needs Work",
+            keywords: ["music", "playlist", "timer", "mix", "flow", "playlist"],
+            incompleteByPlatform: [.iOS: [.metadata, .screenshots, .reviewInfo, .privacy], .iPadOS: [.metadata, .screenshots, .privacy], .macOS: [.metadata, .privacy]]
         ),
-        release(
-            app: AppItem(id: "chatlens", name: "ChatLens", version: "2.0.0", buildNumber: 51, iconSymbol: "bubble.left.and.bubble.right.fill", iconGradient: [Color(hex: 0x6366F1), Color(hex: 0x8B5CF6)], readiness: 88, passRate: 84, reviewHours: "24 – 48", aiScore: 82, status: "Ready for Review"),
-            metadata: AppMetadata(
-                subtitle: "AI chat insight reader",
-                keywords: ["chat", "ai", "summary", "insight", "reader", "ai"],
-                description: "ChatLens summarizes chat exports and highlights follow-up tasks.",
-                releaseNotes: "Added local summary templates and review-ready screenshots.",
-                reviewNote: "The app can be tested with included sample chat transcripts. No login is required."
-            ),
-            buildStart: 51,
-            size: "64.1 MB",
-            incomplete: [.reviewInfo],
-            screenshotWarningSlot: nil,
-            suggestions: [
-                SuggestionItem(title: "AI 相关描述建议强调本地处理", impact: "中影响", tint: Theme.ColorToken.orange),
-                SuggestionItem(title: "关键词 ai 重复率偏高", impact: "中影响", tint: Theme.ColorToken.orange)
-            ]
+        appRelease(
+            id: "chatlens",
+            name: "ChatLens",
+            version: "2.0.0",
+            build: 51,
+            symbol: "bubble.left.and.bubble.right.fill",
+            gradient: [Color(hex: 0x6366F1), Color(hex: 0x8B5CF6)],
+            baseReadiness: 88,
+            passRate: 84,
+            reviewHours: "24 – 48",
+            aiScore: 82,
+            status: "Ready for Review",
+            keywords: ["chat", "ai", "summary", "insight", "reader", "ai"],
+            incompleteByPlatform: [.iOS: [.reviewInfo], .iPadOS: [.screenshots, .reviewInfo], .macOS: [.reviewInfo]]
         )
     ]
 
@@ -105,74 +87,190 @@ enum MockData {
         Dictionary(uniqueKeysWithValues: releases.map { ($0.app.id, $0) })
     }
 
-    static func initialCopilotMessages(for release: AppReleaseMock) -> [CopilotMessage] {
-        [
+    static let settingsSections: [SettingsSection] = [
+        SettingsSection(id: "account", title: "账号", rows: [
+            SettingsRow(id: "team", title: "当前团队", value: "ReleasePilot Team", symbol: "person.2.fill", isEnabled: true),
+            SettingsRow(id: "plan", title: "会员状态", value: "Pro Plan Mock", symbol: "diamond.fill", isEnabled: true)
+        ]),
+        SettingsSection(id: "api", title: "API Key", rows: [
+            SettingsRow(id: "openai", title: "OpenAI API Key", value: "未配置", symbol: "key.fill", isEnabled: false),
+            SettingsRow(id: "claude", title: "Claude API Key", value: "未配置", symbol: "key.horizontal.fill", isEnabled: false),
+            SettingsRow(id: "gemini", title: "Gemini API Key", value: "未配置", symbol: "sparkles", isEnabled: false)
+        ]),
+        SettingsSection(id: "models", title: "模型配置", rows: [
+            SettingsRow(id: "default-model", title: "默认模型", value: "GPT-4o Mock", symbol: "brain.head.profile", isEnabled: true),
+            SettingsRow(id: "fallback-model", title: "备用模型", value: "Claude Sonnet Mock", symbol: "arrow.triangle.branch", isEnabled: true),
+            SettingsRow(id: "local-cache", title: "本地缓存分析结果", value: "开启", symbol: "internaldrive.fill", isEnabled: true)
+        ]),
+        SettingsSection(id: "asc", title: "App Store Connect", rows: [
+            SettingsRow(id: "issuer", title: "Issuer ID", value: "Mock Issuer", symbol: "building.2.fill", isEnabled: true),
+            SettingsRow(id: "keyid", title: "Key ID", value: "ABC123MOCK", symbol: "signature", isEnabled: true),
+            SettingsRow(id: "sync", title: "自动同步", value: "关闭", symbol: "arrow.triangle.2.circlepath", isEnabled: false)
+        ]),
+        SettingsSection(id: "notify", title: "通知设置", rows: [
+            SettingsRow(id: "mail", title: "邮件通知", value: "开启", symbol: "envelope.fill", isEnabled: true),
+            SettingsRow(id: "slack", title: "Slack Webhook", value: "未配置", symbol: "message.fill", isEnabled: false)
+        ])
+    ]
+
+    static func initialCopilotMessages(for release: AppReleaseMock, platform: Platform) -> [CopilotMessage] {
+        let data = release.data(for: platform)
+        return [
             CopilotMessage(
                 role: .assistant,
-                title: "我已分析 \(release.app.name) v\(release.app.version) 的发布状态，发现以下问题和优化建议：",
+                title: "我已分析 \(release.app.name) v\(release.app.version) 的 \(platform.rawValue) 发布状态，发现以下问题和优化建议：",
                 body: "需要我帮你优化这些内容吗？",
-                issues: release.copilotIssues
+                issues: data.copilotIssues
             ),
             CopilotMessage(role: .user, body: AppStrings.userPrompt),
             CopilotMessage(
                 role: .assistant,
                 title: "已为你生成审核备注：",
-                body: reviewNote(for: release),
+                body: reviewNote(for: release, platform: platform),
                 showsReviewNoteActions: true
             )
         ]
     }
 
-    static func reviewNote(for release: AppReleaseMock) -> String {
-        "感谢审核团队的辛勤工作！\(release.app.name) \(release.app.version) 是一款面向桌面和移动端用户的效率应用。\n\n本次版本重点更新：\(release.metadata.releaseNotes)\n\n应用内功能均符合 App Store 规范，不包含虚假宣传或违规内容。需要访问的权限仅用于核心功能，用户数据默认在本地处理。"
+    static func reviewNote(for release: AppReleaseMock, platform: Platform) -> String {
+        let data = release.data(for: platform)
+        return "感谢审核团队的辛勤工作！\(release.app.name) \(release.app.version) \(platform.rawValue) 版本是一款面向桌面和移动端用户的效率应用。\n\n本次版本重点更新：\(data.metadata.releaseNotes)\n\n应用内功能均符合 App Store 规范，不包含虚假宣传或违规内容。需要访问的权限仅用于核心功能，用户数据默认在本地处理。"
     }
 
-    private static func release(app: AppItem, metadata: AppMetadata, buildStart: Int, size: String, incomplete: Set<ReleaseModule>, screenshotWarningSlot: Int?, suggestions: [SuggestionItem]) -> AppReleaseMock {
-        AppReleaseMock(
-            app: app,
-            metadata: metadata,
-            builds: builds(start: buildStart, version: app.version, size: size),
-            screenshotsByDevice: screenshots(appID: app.id, warningSlot: screenshotWarningSlot),
-            suggestions: suggestions,
-            releaseChecks: ReleaseModule.allCases.map { module in
-                ReleaseCheck(id: module, isComplete: !incomplete.contains(module) && module != .release, warning: warning(for: module))
-            },
-            copilotIssues: issues(incomplete: incomplete, suggestions: suggestions)
+    private static func appRelease(
+        id: String,
+        name: String,
+        version: String,
+        build: Int,
+        symbol: String,
+        gradient: [Color],
+        baseReadiness: Int,
+        passRate: Int,
+        reviewHours: String,
+        aiScore: Int,
+        status: String,
+        keywords: [String],
+        incompleteByPlatform: [Platform: Set<ReleaseModule>]
+    ) -> AppReleaseMock {
+        let app = AppItem(id: id, name: name, version: version, buildNumber: build, iconSymbol: symbol, iconGradient: gradient, readiness: baseReadiness, passRate: passRate, reviewHours: reviewHours, aiScore: aiScore, status: status)
+        let platformData = Dictionary(uniqueKeysWithValues: Platform.allCases.map { platform in
+            let incomplete = incompleteByPlatform[platform] ?? []
+            return (
+                platform,
+                PlatformReleaseMock(
+                    metadata: metadata(name: name, platform: platform, keywords: keywords),
+                    builds: builds(appID: id, name: name, start: build + platformOffset(platform), version: version, size: size(for: platform)),
+                    screenshotsByDevice: screenshots(appID: id, platform: platform, incomplete: incomplete),
+                    suggestions: suggestions(name: name, incomplete: incomplete),
+                    releaseChecks: ReleaseModule.allCases.map { module in
+                        ReleaseCheck(id: module, isComplete: !incomplete.contains(module) && module != .release, warning: warning(for: module))
+                    },
+                    copilotIssues: issues(incomplete: incomplete, suggestions: suggestions(name: name, incomplete: incomplete)),
+                    releasePlan: ReleasePlan(releaseMode: .manualAfterApproval, timing: .immediate, scheduledAt: Date().addingTimeInterval(86400), releaseNotes: "发布后逐步放量，监控审核状态。", notifyTeam: true, monitorReview: true)
+                )
+            )
+        })
+        return AppReleaseMock(app: app, platformData: platformData, history: history(app: app))
+    }
+
+    private static func metadata(name: String, platform: Platform, keywords: [String]) -> AppMetadata {
+        AppMetadata(
+            subtitle: "\(platform.rawValue) release workspace",
+            keywords: keywords,
+            description: "\(name) helps creators prepare release assets and metadata for \(platform.rawValue).",
+            releaseNotes: "Improved \(platform.rawValue) release readiness checks and screenshot workflow.",
+            reviewNote: ""
         )
     }
 
-    private static func builds(start: Int, version: String, size: String) -> [BuildInfo] {
-        [
-            BuildInfo(id: start, version: version, uploadedAt: "2024-05-20 14:35", size: size, status: "Processing Complete"),
-            BuildInfo(id: start - 1, version: version, uploadedAt: "2024-05-18 11:20", size: size, status: "Processing Complete"),
-            BuildInfo(id: start - 2, version: version, uploadedAt: "2024-05-15 09:40", size: size, status: "Processing Complete"),
-            BuildInfo(id: start - 3, version: version, uploadedAt: "2024-05-10 16:30", size: size, status: "Processing Complete")
-        ]
+    private static func builds(appID: String, name: String, start: Int, version: String, size: String) -> [BuildInfo] {
+        (0..<10).map { index in
+            BuildInfo(
+                id: start - index,
+                version: index < 3 ? version : "2.\(max(0, 1 - index / 2)).\(max(0, 9 - index))",
+                uploadedAt: "2024-05-\(String(format: "%02d", max(1, 20 - index * 2))) \(index % 2 == 0 ? "14:35" : "11:20")",
+                size: size,
+                status: index == 0 ? "Processing Complete" : "Ready",
+                bundleID: "com.releasepilot.\(appID)",
+                testFlightStatus: index == 0 ? "Ready to Test" : "Expired",
+                validationResults: ["Info.plist 校验通过", "签名校验通过", "隐私清单已检查", "架构切片完整"],
+                uploadLogs: [
+                    "[10:21:04] Preparing \(name) build \(start - index)",
+                    "[10:21:18] Uploading archive to App Store Connect",
+                    "[10:22:05] Processing symbols and privacy manifest",
+                    "[10:24:42] Build processing complete"
+                ],
+                submissionStatus: index == 0 ? "Current" : (index % 3 == 0 ? "Submitted" : "Archived")
+            )
+        }
     }
 
-    private static func screenshots(appID: String, warningSlot: Int?) -> [ScreenshotDevice: [ScreenshotItem]] {
+    private static func screenshots(appID: String, platform: Platform, incomplete: Set<ReleaseModule>) -> [ScreenshotDevice: [ScreenshotItem]] {
         Dictionary(uniqueKeysWithValues: ScreenshotDevice.allCases.map { device in
-            let items = (1...5).map { slot in
+            let count = screenshotCount(platform: platform, device: device, incomplete: incomplete)
+            let items = count > 0 ? (1...count).map { slot in
                 ScreenshotItem(
-                    id: "\(appID)-\(device.id)-\(slot)",
+                    id: "\(appID)-\(platform.id)-\(device.id)-\(slot)",
                     device: device,
                     slot: slot,
                     title: slotTitle(slot),
                     subtitle: slotSubtitle(slot),
-                    hasWarning: warningSlot == slot,
+                    hasWarning: incomplete.contains(.screenshots) && slot == min(3, max(1, count)),
                     styleIndex: slot
                 )
-            }
+            } : []
             return (device, items)
         })
     }
 
-    private static func slotTitle(_ slot: Int) -> String {
-        ["AI 智能", "专业级", "光斑效果", "智能识别", "多种滤镜"][max(0, min(slot - 1, 4))]
+    private static func screenshotCount(platform: Platform, device: ScreenshotDevice, incomplete: Set<ReleaseModule>) -> Int {
+        if incomplete.contains(.screenshots) {
+            if device == .iPad109 || device == .iPadPro { return 0 }
+            return device == .mac ? 2 : 3
+        }
+        switch (platform, device) {
+        case (.macOS, .mac): return 5
+        case (.iPadOS, .iPadPro), (.iPadOS, .iPad109): return 4
+        case (_, .iPhone69), (_, .iPhone65): return 5
+        default: return 3
+        }
     }
 
-    private static func slotSubtitle(_ slot: Int) -> String {
-        ["人像美化", "模糊效果", "一键展示", "精准分割", "风格融合"][max(0, min(slot - 1, 4))]
+    private static func suggestions(name: String, incomplete: Set<ReleaseModule>) -> [SuggestionItem] {
+        var values = [
+            SuggestionItem(title: "\(name) 关键词重复率较高", impact: "中影响", tint: Theme.ColorToken.orange),
+            SuggestionItem(title: "副标题利用率只有 60%", impact: "中影响", tint: Theme.ColorToken.orange),
+            SuggestionItem(title: "第 3 张截图文案区域过大", impact: "低影响", tint: Theme.ColorToken.green)
+        ]
+        if incomplete.contains(.privacy) {
+            values.insert(SuggestionItem(title: "隐私合规说明缺少权限用途", impact: "高影响", tint: Theme.ColorToken.red), at: 0)
+        }
+        return values
+    }
+
+    private static func history(app: AppItem) -> [ReleaseHistoryItem] {
+        (0..<12).map { index in
+            ReleaseHistoryItem(
+                id: "\(app.id)-history-\(index)",
+                appName: app.name,
+                platform: Platform.allCases[index % Platform.allCases.count],
+                version: index == 0 ? app.version : "2.\(max(0, 1 - index / 3)).\(max(0, 9 - index))",
+                build: app.buildNumber - index,
+                status: ["Ready for Review", "Approved", "Rejected", "Released"][index % 4],
+                submittedAt: "2024-05-\(String(format: "%02d", max(1, 25 - index)))"
+            )
+        }
+    }
+
+    private static func issues(incomplete: Set<ReleaseModule>, suggestions: [SuggestionItem]) -> [CopilotIssue] {
+        var issues: [CopilotIssue] = incomplete.map { module in
+            let isHigh = module == .privacy || module == .reviewInfo
+            return CopilotIssue(title: warning(for: module), severity: isHigh ? "高影响" : "中影响", colorName: isHigh ? "red" : "orange")
+        }
+        issues += suggestions.prefix(2).map { suggestion in
+            CopilotIssue(title: suggestion.title, severity: suggestion.impact, colorName: suggestion.impact == "高影响" ? "red" : "orange")
+        }
+        return issues
     }
 
     private static func warning(for module: ReleaseModule) -> String {
@@ -186,22 +284,27 @@ enum MockData {
         }
     }
 
-    private static func issues(incomplete: Set<ReleaseModule>, suggestions: [SuggestionItem]) -> [CopilotIssue] {
-        var issues: [CopilotIssue] = incomplete.map { module in
-            let title: String
-            switch module {
-            case .screenshots: title = "缺少或需替换截图"
-            case .reviewInfo: title = "缺少审核备注信息"
-            case .metadata: title = "元数据需要补充"
-            case .privacy: title = "隐私合规信息待确认"
-            case .build: title = "Build 状态未完成"
-            case .release: title = "发布提交尚未就绪"
-            }
-            return CopilotIssue(title: title, severity: module == .privacy || module == .reviewInfo ? "高影响" : "中影响", colorName: module == .privacy || module == .reviewInfo ? "red" : "orange")
+    private static func slotTitle(_ slot: Int) -> String {
+        ["AI 智能", "专业级", "光斑效果", "智能识别", "多种滤镜", "全新体验"][max(0, min(slot - 1, 5))]
+    }
+
+    private static func slotSubtitle(_ slot: Int) -> String {
+        ["人像美化", "模糊效果", "一键展示", "精准分割", "风格融合", "发布就绪"][max(0, min(slot - 1, 5))]
+    }
+
+    private static func platformOffset(_ platform: Platform) -> Int {
+        switch platform {
+        case .iOS: 0
+        case .iPadOS: 100
+        case .macOS: 200
         }
-        issues += suggestions.prefix(2).map { suggestion in
-            CopilotIssue(title: suggestion.title, severity: suggestion.impact, colorName: suggestion.impact == "高影响" ? "red" : "orange")
+    }
+
+    private static func size(for platform: Platform) -> String {
+        switch platform {
+        case .iOS: "38.4 MB"
+        case .iPadOS: "44.8 MB"
+        case .macOS: "128.6 MB"
         }
-        return issues
     }
 }

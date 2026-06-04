@@ -8,10 +8,16 @@ struct SidebarView: View {
             header
             navigation
             Divider().overlay(Theme.ColorToken.line)
-            appList
+            if !viewModel.isSidebarCollapsed {
+                appList
+            } else {
+                compactAppList
+            }
             Spacer(minLength: 10)
-            proPlan
-            userInfo
+            if !viewModel.isSidebarCollapsed {
+                proPlan
+                userInfo
+            }
             collapseBar
         }
         .padding(14)
@@ -46,21 +52,27 @@ struct SidebarView: View {
                 .frame(width: 34, height: 34)
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
-                Text(AppStrings.appName)
-                    .font(.system(size: 19, weight: .semibold))
-                    .foregroundStyle(.white)
+                if !viewModel.isSidebarCollapsed {
+                    Text(AppStrings.appName)
+                        .font(.system(size: 19, weight: .semibold))
+                        .foregroundStyle(.white)
 
-                StatusBadge(title: AppStrings.versionPill, tint: Theme.ColorToken.blue)
+                    StatusBadge(title: AppStrings.versionPill, tint: Theme.ColorToken.blue)
+                }
             }
         }
     }
 
     private var navigation: some View {
         VStack(spacing: 7) {
-            SidebarNavItem(title: AppStrings.navDashboard, systemImage: "house.fill", isActive: true)
-            SidebarNavItem(title: AppStrings.navApps, systemImage: "app.dashed", isActive: false)
-            SidebarNavItem(title: AppStrings.navHistory, systemImage: "clock", isActive: false)
-            SidebarNavItem(title: AppStrings.navSettings, systemImage: "gearshape", isActive: false)
+            ForEach(MainPage.allCases) { page in
+                Button {
+                    viewModel.selectPage(page)
+                } label: {
+                    SidebarNavItem(title: page.title, systemImage: page.symbol, isActive: viewModel.currentPage == page, isCompact: viewModel.isSidebarCollapsed)
+                }
+                .buttonStyle(.plain)
+            }
         }
     }
 
@@ -90,6 +102,24 @@ struct SidebarView: View {
                 }
             }
         }
+    }
+
+    private var compactAppList: some View {
+        VStack(spacing: 8) {
+            ForEach(viewModel.apps) { app in
+                Button {
+                    viewModel.selectApp(app)
+                } label: {
+                    AppIconView(app: app, size: 38)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 11, style: .continuous)
+                                .stroke(app.id == viewModel.selectedAppID ? Theme.ColorToken.blue.opacity(0.8) : .clear, lineWidth: 2)
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .frame(maxWidth: .infinity)
     }
 
     private var proPlan: some View {
@@ -131,15 +161,24 @@ struct SidebarView: View {
     }
 
     private var collapseBar: some View {
-        HStack {
-            Image(systemName: "sidebar.left")
-            Spacer()
-            Image(systemName: "chevron.left.2")
+        Button {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                viewModel.isSidebarCollapsed.toggle()
+            }
+        } label: {
+            HStack {
+                Image(systemName: "sidebar.left")
+                if !viewModel.isSidebarCollapsed {
+                    Spacer()
+                    Image(systemName: "chevron.left.2")
+                }
+            }
+            .font(.caption)
+            .foregroundStyle(Theme.ColorToken.muted)
+            .padding(12)
+            .background(Color.white.opacity(0.04))
+            .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.small, style: .continuous))
         }
-        .font(.caption)
-        .foregroundStyle(Theme.ColorToken.muted)
-        .padding(12)
-        .background(Color.white.opacity(0.04))
-        .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.small, style: .continuous))
+        .buttonStyle(.plain)
     }
 }

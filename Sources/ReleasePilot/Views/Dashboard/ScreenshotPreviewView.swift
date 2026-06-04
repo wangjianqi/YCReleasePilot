@@ -36,8 +36,12 @@ struct ScreenshotPreviewView: View {
                 }
 
                 HStack(spacing: 13) {
-                    ForEach(screenshots) { item in
-                        ScreenshotPhoneView(item: item, onDelete: { onDelete(item) }, onReplace: { onReplace(item) })
+                    if screenshots.isEmpty {
+                        MissingScreenshotView(onAdd: onAdd)
+                    } else {
+                        ForEach(screenshots) { item in
+                            ScreenshotPhoneView(item: item, onDelete: { onDelete(item) }, onReplace: { onReplace(item) })
+                        }
                     }
                     AddScreenshotView(onAdd: onAdd)
                 }
@@ -62,23 +66,32 @@ private struct ScreenshotPhoneView: View {
             ZStack {
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
                     .fill(Color.black)
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(LinearGradient(colors: [Color(hex: 0x2B1B26), Color(hex: 0x192030), Color.black], startPoint: .top, endPoint: .bottom))
-                    .padding(6)
 
-                VStack {
-                    Text(item.title)
-                        .font(.system(size: 9, weight: .bold))
-                    Text(item.subtitle)
-                        .font(.system(size: 9, weight: .bold))
-                    Spacer()
-                    Image(systemName: "person.fill")
-                        .font(.system(size: 50))
-                        .foregroundStyle(LinearGradient(colors: [Color(hex: 0xFFE0C8), Color(hex: 0x8E5A60)], startPoint: .top, endPoint: .bottom))
-                        .padding(.bottom, 12)
+                if let path = item.localImagePath, let image = NSImage(contentsOfFile: path) {
+                    Image(nsImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 66, height: 144)
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                } else {
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(LinearGradient(colors: [Color(hex: 0x2B1B26), Color(hex: 0x192030), Color.black], startPoint: .top, endPoint: .bottom))
+                        .padding(6)
+
+                    VStack {
+                        Text(item.title)
+                            .font(.system(size: 9, weight: .bold))
+                        Text(item.subtitle)
+                            .font(.system(size: 9, weight: .bold))
+                        Spacer()
+                        Image(systemName: "person.fill")
+                            .font(.system(size: 50))
+                            .foregroundStyle(LinearGradient(colors: [Color(hex: 0xFFE0C8), Color(hex: 0x8E5A60)], startPoint: .top, endPoint: .bottom))
+                            .padding(.bottom, 12)
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.top, 18)
                 }
-                .foregroundStyle(.white)
-                .padding(.top, 18)
 
                 if isHovering {
                     VStack(spacing: 6) {
@@ -111,6 +124,34 @@ private struct ScreenshotPhoneView: View {
                 .font(.caption)
         }
         .onHover { isHovering = $0 }
+    }
+}
+
+private struct MissingScreenshotView: View {
+    let onAdd: () -> Void
+
+    var body: some View {
+        Button(action: onAdd) {
+            VStack(spacing: 8) {
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .stroke(Theme.ColorToken.orange.opacity(0.55), style: StrokeStyle(lineWidth: 1, dash: [5, 5]))
+                    .frame(width: 148, height: 156)
+                    .overlay(
+                        VStack(spacing: 8) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(Theme.ColorToken.orange)
+                            Text("当前设备缺少截图")
+                                .font(.caption.weight(.semibold))
+                            Text("点击添加")
+                                .font(.caption2)
+                                .foregroundStyle(Theme.ColorToken.muted)
+                        }
+                    )
+                Text(" ")
+                    .font(.caption)
+            }
+        }
+        .buttonStyle(.plain)
     }
 }
 

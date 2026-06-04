@@ -2,7 +2,13 @@ import SwiftUI
 
 struct TodoCardView: View {
     let todos: [TodoItem]
+    let totalTodoCount: Int
     let suggestions: [SuggestionItem]
+    let totalSuggestionCount: Int
+    let showAllTodos: Bool
+    let showAllSuggestions: Bool
+    let onToggleTodos: () -> Void
+    let onToggleSuggestions: () -> Void
     let onSelectTodo: (TodoItem) -> Void
 
     var body: some View {
@@ -11,11 +17,14 @@ struct TodoCardView: View {
                 HStack {
                     Text(AppStrings.todayTasks)
                         .font(.headline)
-                    StatusBadge(title: "\(todos.count)", tint: Theme.ColorToken.red)
+                    StatusBadge(title: "\(totalTodoCount)", tint: Theme.ColorToken.red)
                     Spacer()
+                    if totalTodoCount > 2 {
+                        SmallGlassButton(title: showAllTodos ? "收起" : "查看更多", action: onToggleTodos)
+                    }
                 }
 
-                if todos.isEmpty {
+                if totalTodoCount == 0 {
                     HStack(spacing: 10) {
                         Image(systemName: "checkmark.seal.fill")
                             .foregroundStyle(Theme.ColorToken.green)
@@ -67,10 +76,13 @@ struct TodoCardView: View {
                 HStack {
                     Text(AppStrings.suggestions)
                         .font(.headline)
-                    Text("(\(suggestions.count))")
+                    Text("(\(totalSuggestionCount))")
                         .font(.caption)
                         .foregroundStyle(Theme.ColorToken.muted)
                     Spacer()
+                    if totalSuggestionCount > 3 {
+                        SmallGlassButton(title: showAllSuggestions ? "收起" : "查看更多", action: onToggleSuggestions)
+                    }
                 }
                 .padding(.top, 4)
 

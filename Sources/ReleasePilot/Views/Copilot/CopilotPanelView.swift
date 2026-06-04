@@ -39,8 +39,22 @@ struct CopilotPanelView: View {
                     .foregroundStyle(Theme.ColorToken.muted)
             }
             Spacer()
-            Image(systemName: "arrow.up.left.and.arrow.down.right")
-            Image(systemName: "xmark")
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    viewModel.isCopilotExpanded.toggle()
+                }
+            } label: {
+                Image(systemName: viewModel.isCopilotExpanded ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
+            }
+            .buttonStyle(.plain)
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    viewModel.isCopilotHidden = true
+                }
+            } label: {
+                Image(systemName: "xmark")
+            }
+            .buttonStyle(.plain)
         }
         .font(.caption)
         .foregroundStyle(Theme.ColorToken.muted)

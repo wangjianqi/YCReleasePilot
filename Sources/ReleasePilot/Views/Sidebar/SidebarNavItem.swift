@@ -4,18 +4,22 @@ struct SidebarNavItem: View {
     let title: String
     let systemImage: String
     var isActive: Bool
+    var isCompact: Bool = false
 
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: systemImage)
                 .frame(width: 18)
-            Text(title)
-                .font(.system(size: 13, weight: .medium))
-            Spacer()
+            if !isCompact {
+                Text(title)
+                    .font(.system(size: 13, weight: .medium))
+                Spacer()
+            }
         }
         .foregroundStyle(isActive ? .white : Theme.ColorToken.soft)
         .padding(.horizontal, 14)
         .frame(height: 42)
+        .frame(maxWidth: .infinity, alignment: isCompact ? .center : .leading)
         .background(
             Group {
                 if isActive {

@@ -17,9 +17,15 @@ struct ReleaseCenterView: View {
                         readiness: viewModel.displayedReadiness,
                         didSubmit: viewModel.didSubmit,
                         canSubmit: viewModel.canSubmit,
-                        blockedMessage: viewModel.blockedSubmitMessage ?? viewModel.blockingWarnings.first
+                        blockedMessage: viewModel.blockedSubmitMessage ?? viewModel.blockingWarnings.first,
+                        releasePlanSummary: viewModel.releasePlan.summary,
+                        showReleaseDetails: viewModel.showReleaseDetails
                     ) {
                         viewModel.requestSubmit()
+                    } onConfigurePlan: {
+                        viewModel.showReleasePlanDialog()
+                    } onToggleDetails: {
+                        viewModel.showReleaseDetails.toggle()
                     }
                     .id(ReleaseModule.reviewInfo)
                 }
@@ -33,6 +39,9 @@ struct ReleaseCenterView: View {
             }
         }
         .background(surface)
+        .onChange(of: viewModel.selectedPlatform) { _, platform in
+            viewModel.selectPlatform(platform)
+        }
     }
 
     private var surface: some View {
@@ -108,12 +117,27 @@ struct ReleaseCenterView: View {
     private var middleGrid: some View {
         Grid(horizontalSpacing: 12, verticalSpacing: 12) {
             GridRow {
-                TodoCardView(todos: viewModel.todoItems, suggestions: viewModel.suggestions) { todo in
+                TodoCardView(
+                    todos: viewModel.visibleTodos,
+                    totalTodoCount: viewModel.todoItems.count,
+                    suggestions: viewModel.visibleSuggestions,
+                    totalSuggestionCount: viewModel.suggestions.count,
+                    showAllTodos: viewModel.showAllTodos,
+                    showAllSuggestions: viewModel.showAllSuggestions,
+                    onToggleTodos: { viewModel.showAllTodos.toggle() },
+                    onToggleSuggestions: { viewModel.showAllSuggestions.toggle() }
+                ) { todo in
                     viewModel.handleTodo(todo)
                 }
                 .id(ReleaseModule.metadata)
                     .gridCellColumns(1)
-                BuildCardView(builds: viewModel.builds)
+                BuildCardView(
+                    builds: viewModel.visibleBuilds,
+                    showAllBuilds: viewModel.showAllBuilds,
+                    onToggleBuilds: { viewModel.showAllBuilds.toggle() },
+                    onShowAllVersions: { viewModel.showVersionHistory() },
+                    onShowBuildDetail: { viewModel.showBuildDetail($0) }
+                )
                     .id(ReleaseModule.build)
                     .gridCellColumns(1)
                 ScreenshotPreviewView(

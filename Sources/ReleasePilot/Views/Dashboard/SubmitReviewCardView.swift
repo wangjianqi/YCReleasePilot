@@ -6,7 +6,11 @@ struct SubmitReviewCardView: View {
     let didSubmit: Bool
     let canSubmit: Bool
     let blockedMessage: String?
+    let releasePlanSummary: String
+    let showReleaseDetails: Bool
     let onSubmit: () -> Void
+    let onConfigurePlan: () -> Void
+    let onToggleDetails: () -> Void
 
     var body: some View {
         HStack(spacing: 12) {
@@ -35,6 +39,8 @@ struct SubmitReviewCardView: View {
                     Label(canSubmit ? "提交即表示同意遵守 App Store 审核指南" : (blockedMessage ?? "完成所有检查项后才能提交审核"), systemImage: canSubmit ? "lock.fill" : "exclamationmark.triangle.fill")
                         .font(.caption2)
                         .foregroundStyle(canSubmit ? Theme.ColorToken.muted : Theme.ColorToken.orange)
+                    SmallGlassButton(title: showReleaseDetails ? "收起发布信息" : "展开发布信息", systemImage: showReleaseDetails ? "chevron.up" : "chevron.down", action: onToggleDetails)
+                        .frame(width: 160)
                 }
                 Spacer()
             }
@@ -56,6 +62,10 @@ struct SubmitReviewCardView: View {
                 info("语言", "5 种语言")
                 info("构建", "\(app.buildNumber)")
                 info("完成度", "\(readiness)%")
+                if showReleaseDetails {
+                    info("计划", releasePlanSummary)
+                    info("方式", "手动提交")
+                }
             }
         }
     }
@@ -65,11 +75,11 @@ struct SubmitReviewCardView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text(AppStrings.postReleasePlan)
                     .font(.headline)
+                check(releasePlanSummary)
                 check("自动监控审核状态")
-                check("审核通过后自动上线")
                 check("发布成功后通知团队")
                 Spacer()
-                SmallGlassButton(title: "配置发布计划")
+                SmallGlassButton(title: "配置发布计划", action: onConfigurePlan)
                     .frame(maxWidth: .infinity)
             }
         }

@@ -2,6 +2,7 @@ enum ScreenshotDevice: String, CaseIterable, Identifiable {
     case iPhone69 = "iPhone 6.9\""
     case iPhone65 = "iPhone 6.5\""
     case iPadPro = "iPad Pro 12.9\""
+    case iPad109 = "iPad 10.9\""
     case mac = "Mac"
 
     var id: String { rawValue }
@@ -16,8 +17,9 @@ struct ScreenshotItem: Identifiable, Hashable {
     var hasWarning: Bool
     var isPlaceholder: Bool
     var styleIndex: Int
+    var localImagePath: String?
 
-    init(id: String, device: ScreenshotDevice, slot: Int, title: String, subtitle: String, hasWarning: Bool = false, isPlaceholder: Bool = false, styleIndex: Int = 0) {
+    init(id: String, device: ScreenshotDevice, slot: Int, title: String, subtitle: String, hasWarning: Bool = false, isPlaceholder: Bool = false, styleIndex: Int = 0, localImagePath: String? = nil) {
         self.id = id
         self.device = device
         self.slot = slot
@@ -26,5 +28,6 @@ struct ScreenshotItem: Identifiable, Hashable {
         self.hasWarning = hasWarning
         self.isPlaceholder = isPlaceholder
         self.styleIndex = styleIndex
+        self.localImagePath = localImagePath
     }
 }
