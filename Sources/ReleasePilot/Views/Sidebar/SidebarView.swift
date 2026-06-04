@@ -1,0 +1,145 @@
+import SwiftUI
+
+struct SidebarView: View {
+    var viewModel: ReleaseDashboardViewModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            header
+            navigation
+            Divider().overlay(Theme.ColorToken.line)
+            appList
+            Spacer(minLength: 10)
+            proPlan
+            userInfo
+            collapseBar
+        }
+        .padding(14)
+        .background(surface)
+    }
+
+    private var surface: some View {
+        LinearGradient(colors: [Color(hex: 0x0A1628).opacity(0.92), Color(hex: 0x06101E).opacity(0.94)], startPoint: .top, endPoint: .bottom)
+            .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.surface, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.Radius.surface, style: .continuous)
+                    .stroke(Theme.ColorToken.line, lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(0.36), radius: 30, x: 0, y: 20)
+    }
+
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 8) {
+                Circle().fill(Color(hex: 0xFF5F57)).frame(width: 12, height: 12)
+                Circle().fill(Color(hex: 0xFFBD2E)).frame(width: 12, height: 12)
+                Circle().fill(Color(hex: 0x28C840)).frame(width: 12, height: 12)
+            }
+
+            HStack(spacing: 10) {
+                ZStack {
+                    LinearGradient(colors: [Theme.ColorToken.blue, Theme.ColorToken.purple], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    Image(systemName: "paperplane.fill")
+                        .foregroundStyle(.white)
+                        .font(.system(size: 16, weight: .bold))
+                }
+                .frame(width: 34, height: 34)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+                Text(AppStrings.appName)
+                    .font(.system(size: 19, weight: .semibold))
+                    .foregroundStyle(.white)
+
+                StatusBadge(title: AppStrings.versionPill, tint: Theme.ColorToken.blue)
+            }
+        }
+    }
+
+    private var navigation: some View {
+        VStack(spacing: 7) {
+            SidebarNavItem(title: AppStrings.navDashboard, systemImage: "house.fill", isActive: true)
+            SidebarNavItem(title: AppStrings.navApps, systemImage: "app.dashed", isActive: false)
+            SidebarNavItem(title: AppStrings.navHistory, systemImage: "clock", isActive: false)
+            SidebarNavItem(title: AppStrings.navSettings, systemImage: "gearshape", isActive: false)
+        }
+    }
+
+    private var appList: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text(AppStrings.yourApps.uppercased())
+                    .font(.caption2.weight(.medium))
+                    .foregroundStyle(Theme.ColorToken.muted)
+                Spacer()
+                Image(systemName: "plus")
+                    .font(.caption.weight(.bold))
+                    .frame(width: 24, height: 24)
+                    .background(Color.white.opacity(0.06))
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            }
+            .padding(.horizontal, 4)
+
+            VStack(spacing: 8) {
+                ForEach(viewModel.apps) { app in
+                    Button {
+                        viewModel.selectApp(app)
+                    } label: {
+                        AppListItemView(app: app, isSelected: app.id == viewModel.selectedAppID)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
+    private var proPlan: some View {
+        GlassCard(cornerRadius: Theme.Radius.large, padding: 14) {
+            VStack(alignment: .leading, spacing: 10) {
+                Label(AppStrings.proPlan, systemImage: "diamond.fill")
+                    .font(.headline)
+                    .foregroundStyle(Color(hex: 0xFDE047))
+                Text(AppStrings.proRenew)
+                    .font(.caption)
+                    .foregroundStyle(Theme.ColorToken.muted)
+                SmallGlassButton(title: AppStrings.managePlan, systemImage: "arrow.right")
+            }
+        }
+    }
+
+    private var userInfo: some View {
+        HStack(spacing: 10) {
+            ZStack {
+                Circle().fill(Theme.ColorToken.text)
+                Text("张")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(Theme.ColorToken.panel)
+            }
+            .frame(width: 38, height: 38)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(AppStrings.userName)
+                    .font(.system(size: 13, weight: .semibold))
+                Text(AppStrings.userEmail)
+                    .font(.caption)
+                    .foregroundStyle(Theme.ColorToken.muted)
+            }
+            Spacer()
+            Image(systemName: "chevron.down")
+                .foregroundStyle(Theme.ColorToken.muted)
+        }
+        .padding(.horizontal, 4)
+    }
+
+    private var collapseBar: some View {
+        HStack {
+            Image(systemName: "sidebar.left")
+            Spacer()
+            Image(systemName: "chevron.left.2")
+        }
+        .font(.caption)
+        .foregroundStyle(Theme.ColorToken.muted)
+        .padding(12)
+        .background(Color.white.opacity(0.04))
+        .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.small, style: .continuous))
+    }
+}
