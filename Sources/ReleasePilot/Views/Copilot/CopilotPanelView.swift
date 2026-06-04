@@ -61,6 +61,35 @@ struct CopilotPanelView: View {
             }
             Spacer()
             Button {
+                copilotViewModel.newSession(appID: viewModel.selectedApp.id, platform: viewModel.selectedPlatform)
+            } label: {
+                Image(systemName: "square.and.pencil")
+            }
+            .buttonStyle(.plain)
+            Button {
+                copilotViewModel.showingSessionHistory.toggle()
+            } label: {
+                Image(systemName: "clock.arrow.circlepath")
+            }
+            .buttonStyle(.plain)
+            .popover(isPresented: $copilotViewModel.showingSessionHistory, arrowEdge: .bottom) {
+                CopilotSessionHistoryView(
+                    sessions: copilotViewModel.historySessions,
+                    selectedSessionID: copilotViewModel.selectedSessionID,
+                    onSelect: { session in
+                        copilotViewModel.showingSessionHistory = false
+                        copilotViewModel.selectSession(session)
+                    },
+                    onDelete: { session in
+                        copilotViewModel.deleteSession(
+                            session,
+                            fallbackAppID: viewModel.selectedApp.id,
+                            fallbackPlatform: viewModel.selectedPlatform
+                        )
+                    }
+                )
+            }
+            Button {
                 withAnimation(.easeInOut(duration: 0.2)) {
                     viewModel.isCopilotExpanded.toggle()
                 }

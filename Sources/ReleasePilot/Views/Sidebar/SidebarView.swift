@@ -2,6 +2,15 @@ import SwiftUI
 
 struct SidebarView: View {
     var viewModel: ReleaseDashboardViewModel
+    @Bindable var membershipViewModel: MembershipViewModel
+    let onAddApp: () -> Void
+    let onManagePlan: () -> Void
+    let onAccountSettings: () -> Void
+    let onMembershipSettings: () -> Void
+    let onAIProviderSettings: () -> Void
+    let onSignOut: () -> Void
+
+    @State private var showingAccountMenu = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -83,11 +92,14 @@ struct SidebarView: View {
                     .font(.caption2.weight(.medium))
                     .foregroundStyle(Theme.ColorToken.muted)
                 Spacer()
-                Image(systemName: "plus")
-                    .font(.caption.weight(.bold))
-                    .frame(width: 24, height: 24)
-                    .background(Color.white.opacity(0.06))
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                Button(action: onAddApp) {
+                    Image(systemName: "plus")
+                        .font(.caption.weight(.bold))
+                        .frame(width: 24, height: 24)
+                        .background(Color.white.opacity(0.06))
+                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                }
+                .buttonStyle(.plain)
             }
             .padding(.horizontal, 4)
 
@@ -125,39 +137,65 @@ struct SidebarView: View {
     private var proPlan: some View {
         GlassCard(cornerRadius: Theme.Radius.large, padding: 14) {
             VStack(alignment: .leading, spacing: 10) {
-                Label(AppStrings.proPlan, systemImage: "diamond.fill")
+                Label(membershipViewModel.status.isPaid ? "\(membershipViewModel.status.title) Plan" : AppStrings.proPlan, systemImage: "diamond.fill")
                     .font(.headline)
                     .foregroundStyle(Color(hex: 0xFDE047))
-                Text(AppStrings.proRenew)
+                Text(membershipViewModel.status.isPaid ? "AI Copilot Unlimited" : "升级后解锁完整 AI Copilot")
                     .font(.caption)
                     .foregroundStyle(Theme.ColorToken.muted)
-                SmallGlassButton(title: AppStrings.managePlan, systemImage: "arrow.right")
+                SmallGlassButton(title: AppStrings.managePlan, systemImage: "arrow.right", action: onManagePlan)
             }
         }
     }
 
     private var userInfo: some View {
-        HStack(spacing: 10) {
-            ZStack {
-                Circle().fill(Theme.ColorToken.text)
-                Text("张")
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(Theme.ColorToken.panel)
-            }
-            .frame(width: 38, height: 38)
+        Button {
+            showingAccountMenu.toggle()
+        } label: {
+            HStack(spacing: 10) {
+                ZStack {
+                    Circle().fill(Theme.ColorToken.text)
+                    Text("张")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(Theme.ColorToken.panel)
+                }
+                .frame(width: 38, height: 38)
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(AppStrings.userName)
-                    .font(.system(size: 13, weight: .semibold))
-                Text(AppStrings.userEmail)
-                    .font(.caption)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(AppStrings.userName)
+                        .font(.system(size: 13, weight: .semibold))
+                    Text(AppStrings.userEmail)
+                        .font(.caption)
+                        .foregroundStyle(Theme.ColorToken.muted)
+                }
+                Spacer()
+                Image(systemName: showingAccountMenu ? "chevron.up" : "chevron.down")
                     .foregroundStyle(Theme.ColorToken.muted)
             }
-            Spacer()
-            Image(systemName: "chevron.down")
-                .foregroundStyle(Theme.ColorToken.muted)
+            .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
         .padding(.horizontal, 4)
+        .popover(isPresented: $showingAccountMenu, arrowEdge: .bottom) {
+            AccountMenuView(
+                onAccountSettings: {
+                    showingAccountMenu = false
+                    onAccountSettings()
+                },
+                onMembershipSettings: {
+                    showingAccountMenu = false
+                    onMembershipSettings()
+                },
+                onAIProviderSettings: {
+                    showingAccountMenu = false
+                    onAIProviderSettings()
+                },
+                onSignOut: {
+                    showingAccountMenu = false
+                    onSignOut()
+                }
+            )
+        }
     }
 
     private var collapseBar: some View {

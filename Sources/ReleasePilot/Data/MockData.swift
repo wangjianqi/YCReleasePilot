@@ -87,6 +87,35 @@ enum MockData {
         Dictionary(uniqueKeysWithValues: releases.map { ($0.app.id, $0) })
     }
 
+    static func makeRelease(from draft: AppDraft, existingIDs: Set<String>) -> AppReleaseMock {
+        var id = draft.sanitizedID
+        var suffix = 2
+        while existingIDs.contains(id) {
+            id = "\(draft.sanitizedID)-\(suffix)"
+            suffix += 1
+        }
+        let template = draft.statusTemplate
+        let incomplete = Dictionary(uniqueKeysWithValues: Platform.allCases.map { platform in
+            let modules = platform == draft.primaryPlatform ? template.incompleteModules : template.incompleteModules.union([.screenshots])
+            return (platform, modules)
+        })
+        return appRelease(
+            id: id,
+            name: draft.name.trimmingCharacters(in: .whitespacesAndNewlines),
+            version: draft.version.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "1.0.0" : draft.version,
+            build: draft.parsedBuildNumber,
+            symbol: draft.iconSymbol,
+            gradient: [Theme.ColorToken.blue, Theme.ColorToken.purple],
+            baseReadiness: template.readiness,
+            passRate: max(58, template.readiness - 4),
+            reviewHours: template == .needsWork ? "48 – 72" : "24 – 48",
+            aiScore: max(60, template.readiness - 2),
+            status: template.rawValue,
+            keywords: ["release", "app", draft.name.lowercased(), "store", "aso", "release"],
+            incompleteByPlatform: incomplete
+        )
+    }
+
     static let copilotSuggestions: [CopilotSuggestion] = [
         CopilotSuggestion(
             title: "缺少 iPad 截图",

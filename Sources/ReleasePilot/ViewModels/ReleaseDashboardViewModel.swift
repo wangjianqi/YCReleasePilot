@@ -5,6 +5,7 @@ import SwiftUI
 @Observable
 final class ReleaseDashboardViewModel {
     var appReleases: [String: AppReleaseMock] = MockData.releaseMap
+    var appOrder: [String] = MockData.releases.map(\.app.id)
     var selectedAppID: AppItem.ID
     var selectedPlatform: Platform = .iOS
     var selectedScreenshotDevice: ScreenshotDevice = .iPhone69
@@ -18,6 +19,8 @@ final class ReleaseDashboardViewModel {
     var activeDialog: ActiveDialog?
     var toastMessage: String?
     var appSearchText = ""
+    var showingAddAppSheet = false
+    var appDraft = AppDraft()
 
     var isSidebarCollapsed = false
     var isCopilotHidden = false
@@ -44,7 +47,12 @@ final class ReleaseDashboardViewModel {
     }
 
     var apps: [AppItem] {
-        MockData.apps
+        let ordered = appOrder.compactMap { appReleases[$0]?.app }
+        let remaining = appReleases.values
+            .filter { release in !appOrder.contains(release.app.id) }
+            .map(\.app)
+            .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        return ordered + remaining
     }
 
     var filteredApps: [AppItem] {
@@ -190,6 +198,33 @@ final class ReleaseDashboardViewModel {
         blockedSubmitMessage = nil
         copilotMessages = MockData.initialCopilotMessages(for: selectedRelease, platform: selectedPlatform)
         releasePlanDraft = releasePlan
+    }
+
+    func requestAddApp() {
+        appDraft = AppDraft()
+        showingAddAppSheet = true
+    }
+
+    func cancelAddApp() {
+        showingAddAppSheet = false
+    }
+
+    func addAppFromDraft(_ draft: AppDraft) {
+        guard draft.canSave else { return }
+        let release = MockData.makeRelease(from: draft, existingIDs: Set(appReleases.keys))
+        appReleases[release.app.id] = release
+        appOrder.append(release.app.id)
+        selectedAppID = release.app.id
+        selectedPlatform = draft.primaryPlatform
+        selectedScreenshotDevice = defaultScreenshotDevice(for: draft.primaryPlatform)
+        focusedModule = nil
+        didSubmit = false
+        blockedSubmitMessage = nil
+        copilotMessages = MockData.initialCopilotMessages(for: release, platform: draft.primaryPlatform)
+        releasePlanDraft = release.data(for: draft.primaryPlatform).releasePlan
+        currentPage = .dashboard
+        showingAddAppSheet = false
+        showToast("\(release.app.name) 已添加")
     }
 
     func selectPlatform(_ platform: Platform) {

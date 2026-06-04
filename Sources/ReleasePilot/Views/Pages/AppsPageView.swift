@@ -68,10 +68,10 @@ struct AppsPageView: View {
                 .background(Color.white.opacity(0.06))
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             SmallGlassButton(title: "添加 App", systemImage: "plus") {
-                if membershipViewModel.status.isPaid {
-                    viewModel.showToast("添加 App 入口已预留")
-                } else {
+                if !membershipViewModel.status.isPaid && viewModel.apps.count >= 2 {
                     membershipViewModel.openPaywall()
+                } else {
+                    viewModel.requestAddApp()
                 }
             }
         }

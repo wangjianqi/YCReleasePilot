@@ -19,6 +19,11 @@ struct RootView: View {
             toastService: toastService,
             initialMessages: dashboard.copilotMessages
         )
+        copilotViewModel.loadSession(
+            for: dashboard.selectedApp.id,
+            platform: dashboard.selectedPlatform,
+            initialMessages: dashboard.copilotMessages
+        )
         let settingsViewModel = SettingsViewModel(
             aiProvidersViewModel: aiProvidersViewModel,
             membershipViewModel: membershipViewModel,
@@ -39,7 +44,35 @@ struct RootView: View {
             background
 
             HStack(spacing: Theme.Spacing.page) {
-                SidebarView(viewModel: viewModel)
+                SidebarView(
+                    viewModel: viewModel,
+                    membershipViewModel: membershipViewModel,
+                    onAddApp: {
+                        if !membershipViewModel.status.isPaid && viewModel.apps.count >= 2 {
+                            membershipViewModel.openPaywall()
+                        } else {
+                            viewModel.requestAddApp()
+                        }
+                    },
+                    onManagePlan: {
+                        membershipViewModel.openPaywall()
+                    },
+                    onAccountSettings: {
+                        settingsViewModel.selectedSection = .general
+                        viewModel.selectPage(.settings)
+                    },
+                    onMembershipSettings: {
+                        settingsViewModel.selectedSection = .membership
+                        viewModel.selectPage(.settings)
+                    },
+                    onAIProviderSettings: {
+                        settingsViewModel.selectedSection = .aiProviders
+                        viewModel.selectPage(.settings)
+                    },
+                    onSignOut: {
+                        toastService.show("Sign Out Mock")
+                    }
+                )
                     .frame(width: viewModel.isSidebarCollapsed ? 74 : 252)
 
                 mainContent
@@ -90,6 +123,16 @@ struct RootView: View {
         )) {
             PaywallSheet(membershipViewModel: membershipViewModel)
         }
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingAddAppSheet },
+            set: { viewModel.showingAddAppSheet = $0 }
+        )) {
+            AddAppSheet(draft: viewModel.appDraft) { draft in
+                viewModel.addAppFromDraft(draft)
+            } onCancel: {
+                viewModel.cancelAddApp()
+            }
+        }
         .alert(AppStrings.confirmSubmitTitle, isPresented: Binding(
             get: { viewModel.showingSubmitConfirmation },
             set: { viewModel.showingSubmitConfirmation = $0 }
@@ -102,10 +145,18 @@ struct RootView: View {
             Text(AppStrings.confirmSubmitMessage)
         }
         .onChange(of: viewModel.selectedAppID) { _, _ in
-            copilotViewModel.replaceMessages(MockData.initialCopilotMessages(for: viewModel.selectedRelease, platform: viewModel.selectedPlatform))
+            copilotViewModel.loadSession(
+                for: viewModel.selectedApp.id,
+                platform: viewModel.selectedPlatform,
+                initialMessages: MockData.initialCopilotMessages(for: viewModel.selectedRelease, platform: viewModel.selectedPlatform)
+            )
         }
         .onChange(of: viewModel.selectedPlatform) { _, platform in
-            copilotViewModel.replaceMessages(MockData.initialCopilotMessages(for: viewModel.selectedRelease, platform: platform))
+            copilotViewModel.loadSession(
+                for: viewModel.selectedApp.id,
+                platform: platform,
+                initialMessages: MockData.initialCopilotMessages(for: viewModel.selectedRelease, platform: platform)
+            )
         }
     }
 
