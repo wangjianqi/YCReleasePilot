@@ -14,7 +14,7 @@ struct AppItem: Identifiable, Hashable {
     let status: String
 }
 
-enum Platform: String, CaseIterable, Identifiable {
+enum Platform: String, CaseIterable, Codable, Identifiable {
     case iOS
     case iPadOS
     case macOS

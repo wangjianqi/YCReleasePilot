@@ -3,6 +3,7 @@ import SwiftUI
 
 struct CopilotMessageView: View {
     let message: CopilotMessage
+    var onCopy: () -> Void = {}
     let onApplyReviewNote: () -> Void
 
     var body: some View {
@@ -13,9 +14,9 @@ struct CopilotMessageView: View {
 
             VStack(alignment: message.role == .user ? .trailing : .leading, spacing: 10) {
                 bubble
-                if message.showsReviewNoteActions {
-                    actionRow
-                }
+            if message.role == .assistant {
+                actionRow
+            }
             }
             .frame(maxWidth: .infinity, alignment: message.role == .user ? .trailing : .leading)
 
@@ -67,10 +68,11 @@ struct CopilotMessageView: View {
     private var actionRow: some View {
         HStack(spacing: 8) {
             SmallGlassButton(title: AppStrings.copy, systemImage: "doc.on.doc") {
-                NSPasteboard.general.clearContents()
-                NSPasteboard.general.setString(message.body, forType: .string)
+                onCopy()
             }
-            SmallGlassButton(title: AppStrings.applyReviewNote, systemImage: "checkmark.circle", action: onApplyReviewNote)
+            if message.showsReviewNoteActions {
+                SmallGlassButton(title: AppStrings.applyReviewNote, systemImage: "checkmark.circle", action: onApplyReviewNote)
+            }
         }
     }
 

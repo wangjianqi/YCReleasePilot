@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ReleaseCenterView: View {
     @Bindable var viewModel: ReleaseDashboardViewModel
+    var membershipViewModel: MembershipViewModel
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -101,7 +102,12 @@ struct ReleaseCenterView: View {
                 }
                 divider
                 MetricCardView(title: AppStrings.aiScore) {
-                    AIScoreMetric(score: viewModel.selectedApp.aiScore)
+                    AIScoreMetric(
+                        score: viewModel.selectedApp.aiScore,
+                        isFullAccess: membershipViewModel.isAllowed(.advancedReviewRisk) && membershipViewModel.status.isPaid
+                    ) {
+                        membershipViewModel.openPaywall()
+                    }
                 }
             }
         }

@@ -87,6 +87,37 @@ enum MockData {
         Dictionary(uniqueKeysWithValues: releases.map { ($0.app.id, $0) })
     }
 
+    static let copilotSuggestions: [CopilotSuggestion] = [
+        CopilotSuggestion(
+            title: "缺少 iPad 截图",
+            risk: .medium,
+            module: .screenshots,
+            reason: "当前版本支持 iPad，但截图资源未完整上传",
+            actionTitle: "前往截图管理"
+        ),
+        CopilotSuggestion(
+            title: "审核备注为空",
+            risk: .medium,
+            module: .reviewInfo,
+            reason: "本次版本新增了 AI 相关功能，建议提供清晰说明",
+            actionTitle: "生成审核备注"
+        ),
+        CopilotSuggestion(
+            title: "副标题未充分利用",
+            risk: .low,
+            module: .metadata,
+            reason: "副标题还有 12 个字符空间，可加入核心关键词",
+            actionTitle: "优化副标题"
+        ),
+        CopilotSuggestion(
+            title: "关键词重复率较高",
+            risk: .low,
+            module: .aso,
+            reason: "关键词中存在重复词，可能浪费字符空间",
+            actionTitle: "优化关键词"
+        )
+    ]
+
     static let settingsSections: [SettingsSection] = [
         SettingsSection(id: "account", title: "账号", rows: [
             SettingsRow(id: "team", title: "当前团队", value: "ReleasePilot Team", symbol: "person.2.fill", isEnabled: true),

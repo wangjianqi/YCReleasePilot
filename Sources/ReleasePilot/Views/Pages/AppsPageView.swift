@@ -2,14 +2,20 @@ import SwiftUI
 
 struct AppsPageView: View {
     @Bindable var viewModel: ReleaseDashboardViewModel
+    @Bindable var membershipViewModel: MembershipViewModel
 
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 16) {
                 pageHeader
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 12)], spacing: 12) {
-                    ForEach(viewModel.filteredApps) { app in
+                    ForEach(Array(viewModel.filteredApps.enumerated()), id: \.element.id) { index, app in
+                        let isLocked = !membershipViewModel.status.isPaid && index >= 2
                         Button {
+                            guard !isLocked else {
+                                membershipViewModel.openPaywall()
+                                return
+                            }
                             viewModel.selectApp(app)
                             viewModel.selectPage(.dashboard)
                         } label: {
@@ -25,6 +31,10 @@ struct AppsPageView: View {
                                         StatusBadge(title: app.status, tint: app.id == viewModel.selectedAppID ? Theme.ColorToken.blue : Theme.ColorToken.green)
                                     }
                                     Spacer()
+                                    if isLocked {
+                                        Image(systemName: "lock.fill")
+                                            .foregroundStyle(Theme.ColorToken.orange)
+                                    }
                                 }
                             }
                             .overlay(
@@ -58,7 +68,11 @@ struct AppsPageView: View {
                 .background(Color.white.opacity(0.06))
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             SmallGlassButton(title: "添加 App", systemImage: "plus") {
-                viewModel.showToast("添加 App 入口已预留")
+                if membershipViewModel.status.isPaid {
+                    viewModel.showToast("添加 App 入口已预留")
+                } else {
+                    membershipViewModel.openPaywall()
+                }
             }
         }
     }

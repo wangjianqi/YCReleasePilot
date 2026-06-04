@@ -101,6 +101,8 @@ struct CompletionMetric: View {
 
 struct AIScoreMetric: View {
     let score: Int
+    var isFullAccess: Bool = true
+    var onUpgrade: () -> Void = {}
 
     var body: some View {
         VStack(spacing: 8) {
@@ -108,7 +110,7 @@ struct AIScoreMetric: View {
                 .fill(LinearGradient(colors: [Theme.ColorToken.blue.opacity(0.28), Theme.ColorToken.purple.opacity(0.72)], startPoint: .topLeading, endPoint: .bottomTrailing))
                 .overlay(
                     VStack(spacing: 0) {
-                        Text("\(score)")
+                        Text(isFullAccess ? "\(score)" : "\(max(60, min(score, 82)))")
                             .font(.system(size: 34, weight: .black))
                         Text("/100")
                             .font(.caption)
@@ -117,12 +119,23 @@ struct AIScoreMetric: View {
                 )
                 .frame(width: 94, height: 104)
                 .shadow(color: Theme.ColorToken.purple.opacity(0.35), radius: 18)
-            Text("表现良好")
+            Text(isFullAccess ? "表现良好" : "简版评分")
                 .font(.caption.weight(.bold))
                 .foregroundStyle(Theme.ColorToken.green)
-            Text("仍有优化空间")
-                .font(.caption2)
-                .foregroundStyle(Theme.ColorToken.muted)
+            if isFullAccess {
+                Text("仍有优化空间")
+                    .font(.caption2)
+                    .foregroundStyle(Theme.ColorToken.muted)
+            } else {
+                Button {
+                    onUpgrade()
+                } label: {
+                    Label("升级查看完整建议", systemImage: "lock.fill")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(Theme.ColorToken.purple)
+                }
+                .buttonStyle(.plain)
+            }
         }
         .frame(maxWidth: .infinity)
     }

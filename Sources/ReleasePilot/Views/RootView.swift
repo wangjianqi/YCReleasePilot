@@ -1,7 +1,38 @@
 import SwiftUI
 
 struct RootView: View {
-    @State private var viewModel = ReleaseDashboardViewModel()
+    @State private var viewModel: ReleaseDashboardViewModel
+    @State private var toastService: ToastService
+    @State private var membershipViewModel: MembershipViewModel
+    @State private var copilotViewModel: CopilotViewModel
+    @State private var settingsViewModel: SettingsViewModel
+
+    init() {
+        let dashboard = ReleaseDashboardViewModel()
+        let toastService = ToastService()
+        let membershipService = MembershipService()
+        let membershipViewModel = MembershipViewModel(service: membershipService, toastService: toastService)
+        let aiProvidersViewModel = AIProvidersViewModel(toastService: toastService)
+        let copilotViewModel = CopilotViewModel(
+            providerViewModel: aiProvidersViewModel,
+            membershipViewModel: membershipViewModel,
+            toastService: toastService,
+            initialMessages: dashboard.copilotMessages
+        )
+        let settingsViewModel = SettingsViewModel(
+            aiProvidersViewModel: aiProvidersViewModel,
+            membershipViewModel: membershipViewModel,
+            toastService: toastService,
+            onClearChatHistory: {
+                copilotViewModel.clearHistory()
+            }
+        )
+        _viewModel = State(initialValue: dashboard)
+        _toastService = State(initialValue: toastService)
+        _membershipViewModel = State(initialValue: membershipViewModel)
+        _copilotViewModel = State(initialValue: copilotViewModel)
+        _settingsViewModel = State(initialValue: settingsViewModel)
+    }
 
     var body: some View {
         ZStack {
@@ -15,7 +46,15 @@ struct RootView: View {
                     .frame(maxWidth: .infinity)
 
                 if !viewModel.isCopilotHidden {
-                    CopilotPanelView(viewModel: viewModel)
+                    CopilotPanelView(
+                        viewModel: viewModel,
+                        copilotViewModel: copilotViewModel,
+                        membershipViewModel: membershipViewModel,
+                        onOpenSettings: {
+                            settingsViewModel.selectedSection = .aiProviders
+                            viewModel.selectPage(.settings)
+                        }
+                    )
                         .frame(width: viewModel.isCopilotExpanded ? 460 : 360)
                 } else {
                     Button {
@@ -37,26 +76,20 @@ struct RootView: View {
                 dialogView(dialog)
             }
 
-            if let toast = viewModel.toastMessage {
-                VStack {
-                    Spacer()
-                    Text(toast)
-                        .font(.caption.weight(.semibold))
-                        .padding(.horizontal, 16)
-                        .frame(height: 38)
-                        .background(Color.black.opacity(0.7))
-                        .clipShape(Capsule())
-                        .overlay(Capsule().stroke(Theme.ColorToken.lineStrong, lineWidth: 1))
-                        .padding(.bottom, 28)
-                        .onAppear {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) {
-                                viewModel.clearToast()
-                            }
-                        }
+            if let toast = toastService.message ?? viewModel.toastMessage {
+                ToastView(message: toast) {
+                    toastService.clear()
+                    viewModel.clearToast()
                 }
             }
         }
         .foregroundStyle(Theme.ColorToken.text)
+        .sheet(isPresented: Binding(
+            get: { membershipViewModel.showingPaywall },
+            set: { membershipViewModel.showingPaywall = $0 }
+        )) {
+            PaywallSheet(membershipViewModel: membershipViewModel)
+        }
         .alert(AppStrings.confirmSubmitTitle, isPresented: Binding(
             get: { viewModel.showingSubmitConfirmation },
             set: { viewModel.showingSubmitConfirmation = $0 }
@@ -67,6 +100,12 @@ struct RootView: View {
             }
         } message: {
             Text(AppStrings.confirmSubmitMessage)
+        }
+        .onChange(of: viewModel.selectedAppID) { _, _ in
+            copilotViewModel.replaceMessages(MockData.initialCopilotMessages(for: viewModel.selectedRelease, platform: viewModel.selectedPlatform))
+        }
+        .onChange(of: viewModel.selectedPlatform) { _, platform in
+            copilotViewModel.replaceMessages(MockData.initialCopilotMessages(for: viewModel.selectedRelease, platform: platform))
         }
     }
 
@@ -83,13 +122,13 @@ struct RootView: View {
     private var mainContent: some View {
         switch viewModel.currentPage {
         case .dashboard:
-            ReleaseCenterView(viewModel: viewModel)
+            ReleaseCenterView(viewModel: viewModel, membershipViewModel: membershipViewModel)
         case .apps:
-            AppsPageView(viewModel: viewModel)
+            AppsPageView(viewModel: viewModel, membershipViewModel: membershipViewModel)
         case .history:
             HistoryPageView(viewModel: viewModel)
         case .settings:
-            SettingsPageView(viewModel: viewModel)
+            SettingsPageView(settingsViewModel: settingsViewModel)
         }
     }
 
