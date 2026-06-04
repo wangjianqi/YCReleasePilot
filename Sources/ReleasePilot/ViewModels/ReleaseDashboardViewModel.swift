@@ -29,6 +29,11 @@ final class ReleaseDashboardViewModel {
     var showAllSuggestions = false
     var showAllBuilds = false
     var showReleaseDetails = false
+    var isSyncingAppStoreConnect = false
+    var appStoreConnectSyncMessage: String?
+
+    private let appStoreConnectConfigService: AppStoreConnectConfigService
+    private let appStoreConnectAPIService: AppStoreConnectAPIService
 
     var releasePlanDraft = ReleasePlan(
         releaseMode: .manualAfterApproval,
@@ -39,7 +44,12 @@ final class ReleaseDashboardViewModel {
         monitorReview: true
     )
 
-    init() {
+    init(
+        appStoreConnectConfigService: AppStoreConnectConfigService = AppStoreConnectConfigService(),
+        appStoreConnectAPIService: AppStoreConnectAPIService = AppStoreConnectAPIService()
+    ) {
+        self.appStoreConnectConfigService = appStoreConnectConfigService
+        self.appStoreConnectAPIService = appStoreConnectAPIService
         let first = MockData.releases[0]
         selectedAppID = first.app.id
         copilotMessages = MockData.initialCopilotMessages(for: first, platform: .iOS)
@@ -237,6 +247,42 @@ final class ReleaseDashboardViewModel {
         releasePlanDraft = releasePlan
     }
 
+    func syncAppStoreConnect() {
+        guard !isSyncingAppStoreConnect else { return }
+        isSyncingAppStoreConnect = true
+        appStoreConnectSyncMessage = nil
+        Task { @MainActor in
+            do {
+                let config = appStoreConnectConfigService.loadConfig()
+                let snapshots = try await appStoreConnectAPIService.listApps(config: config, limit: 20)
+                let releases = snapshots.map { MockData.makeRelease(from: $0) }
+                guard !releases.isEmpty else {
+                    appStoreConnectSyncMessage = "App Store Connect 没有返回可见 App。"
+                    isSyncingAppStoreConnect = false
+                    showToast(appStoreConnectSyncMessage ?? "同步失败")
+                    return
+                }
+                appReleases = Dictionary(uniqueKeysWithValues: releases.map { ($0.app.id, $0) })
+                appOrder = releases.map(\.app.id)
+                selectedAppID = releases[0].app.id
+                selectedPlatform = defaultPlatform(from: snapshots[0].platform)
+                selectedScreenshotDevice = defaultScreenshotDevice(for: selectedPlatform)
+                focusedModule = nil
+                didSubmit = false
+                blockedSubmitMessage = nil
+                releasePlanDraft = selectedRelease.data(for: selectedPlatform).releasePlan
+                copilotMessages = MockData.initialCopilotMessages(for: selectedRelease, platform: selectedPlatform)
+                appStoreConnectSyncMessage = "已同步 \(releases.count) 个 App Store Connect App"
+                showToast(appStoreConnectSyncMessage ?? "同步成功")
+            } catch {
+                let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                appStoreConnectSyncMessage = message
+                showToast(message)
+            }
+            isSyncingAppStoreConnect = false
+        }
+    }
+
     func handleTodo(_ todo: TodoItem) {
         currentPage = .dashboard
         focus(todo.targetModule)
@@ -421,6 +467,14 @@ final class ReleaseDashboardViewModel {
         case .iOS: .iPhone69
         case .iPadOS: .iPadPro
         case .macOS: .mac
+        }
+    }
+
+    private func defaultPlatform(from value: String?) -> Platform {
+        switch value {
+        case "IOS": .iOS
+        case "MAC_OS": .macOS
+        default: .iOS
         }
     }
 

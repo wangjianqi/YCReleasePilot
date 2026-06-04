@@ -116,6 +116,50 @@ enum MockData {
         )
     }
 
+    static func makeRelease(from snapshot: AppStoreConnectAppSnapshot) -> AppReleaseMock {
+        let version = snapshot.latestVersion?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? snapshot.latestVersion! : "1.0.0"
+        let buildNumber = snapshot.builds.first.flatMap { Int($0.version) } ?? Int(snapshot.builds.first?.id.suffix(4) ?? "") ?? 1
+        let state = snapshot.appStoreState.map(readableState) ?? "Synced from ASC"
+        let readiness = readiness(forASCState: snapshot.appStoreState)
+        let app = AppItem(
+            id: snapshot.id,
+            name: snapshot.name,
+            version: version,
+            buildNumber: buildNumber,
+            iconSymbol: iconSymbol(for: snapshot.bundleID),
+            iconGradient: iconGradient(for: snapshot.id),
+            readiness: readiness,
+            passRate: readiness >= 90 ? 88 : 74,
+            reviewHours: "24 – 48",
+            aiScore: max(68, readiness - 6),
+            status: state
+        )
+        let platformData = Dictionary(uniqueKeysWithValues: Platform.allCases.map { platform in
+            let incomplete: Set<ReleaseModule> = readiness >= 90 ? [.screenshots] : [.metadata, .screenshots, .reviewInfo]
+            return (
+                platform,
+                PlatformReleaseMock(
+                    metadata: AppMetadata(
+                        subtitle: "\(snapshot.primaryLocale) · \(snapshot.bundleID)",
+                        keywords: [snapshot.name.lowercased(), snapshot.sku.lowercased(), "app", "release", "store"],
+                        description: "来自 App Store Connect 的真实 App：\(snapshot.name)。Bundle ID：\(snapshot.bundleID)。",
+                        releaseNotes: "当前版本状态：\(state)。",
+                        reviewNote: ""
+                    ),
+                    builds: builds(from: snapshot, app: app, platform: platform),
+                    screenshotsByDevice: screenshots(appID: snapshot.id, platform: platform, incomplete: incomplete),
+                    suggestions: suggestions(name: snapshot.name, incomplete: incomplete),
+                    releaseChecks: ReleaseModule.allCases.map { module in
+                        ReleaseCheck(id: module, isComplete: !incomplete.contains(module) && module != .release, warning: warning(for: module))
+                    },
+                    copilotIssues: issues(incomplete: incomplete, suggestions: suggestions(name: snapshot.name, incomplete: incomplete)),
+                    releasePlan: ReleasePlan(releaseMode: .manualAfterApproval, timing: .immediate, scheduledAt: Date().addingTimeInterval(86400), releaseNotes: "ASC 同步数据，仅本地预览发布计划。", notifyTeam: true, monitorReview: true)
+                )
+            )
+        })
+        return AppReleaseMock(app: app, platformData: platformData, history: history(app: app))
+    }
+
     static let copilotSuggestions: [CopilotSuggestion] = [
         CopilotSuggestion(
             title: "缺少 iPad 截图",
@@ -265,6 +309,32 @@ enum MockData {
         }
     }
 
+    private static func builds(from snapshot: AppStoreConnectAppSnapshot, app: AppItem, platform: Platform) -> [BuildInfo] {
+        let values = snapshot.builds.enumerated().map { index, build in
+            BuildInfo(
+                id: Int(build.version) ?? max(app.buildNumber - index, 1),
+                version: app.version,
+                uploadedAt: formattedASCDate(build.uploadedDate),
+                size: size(for: platform),
+                status: readableState(build.processingState),
+                bundleID: snapshot.bundleID,
+                testFlightStatus: readableState(build.processingState),
+                validationResults: ["App Store Connect 同步成功", "Bundle ID：\(snapshot.bundleID)", "SKU：\(snapshot.sku)", "Primary Locale：\(snapshot.primaryLocale)"],
+                uploadLogs: [
+                    "[ASC] App: \(snapshot.name)",
+                    "[ASC] Build ID: \(build.id)",
+                    "[ASC] Processing State: \(build.processingState)",
+                    "[ASC] Uploaded: \(build.uploadedDate.isEmpty ? "Unknown" : build.uploadedDate)"
+                ],
+                submissionStatus: snapshot.appStoreState.map(readableState) ?? "Synced"
+            )
+        }
+        if !values.isEmpty {
+            return values
+        }
+        return builds(appID: snapshot.id, name: snapshot.name, start: app.buildNumber, version: app.version, size: size(for: platform))
+    }
+
     private static func screenshots(appID: String, platform: Platform, incomplete: Set<ReleaseModule>) -> [ScreenshotDevice: [ScreenshotItem]] {
         Dictionary(uniqueKeysWithValues: ScreenshotDevice.allCases.map { device in
             let count = screenshotCount(platform: platform, device: device, incomplete: incomplete)
@@ -294,6 +364,58 @@ enum MockData {
         case (_, .iPhone69), (_, .iPhone65): return 5
         default: return 3
         }
+    }
+
+    private static func readableState(_ value: String) -> String {
+        value
+            .split(separator: "_")
+            .map { $0.prefix(1).uppercased() + $0.dropFirst().lowercased() }
+            .joined(separator: " ")
+    }
+
+    private static func readiness(forASCState state: String?) -> Int {
+        switch state {
+        case "READY_FOR_SALE", "PENDING_APPLE_RELEASE", "PENDING_DEVELOPER_RELEASE":
+            return 96
+        case "READY_FOR_REVIEW", "WAITING_FOR_REVIEW", "IN_REVIEW":
+            return 92
+        case "PREPARE_FOR_SUBMISSION", "PROCESSING_FOR_APP_STORE":
+            return 78
+        case "REJECTED", "METADATA_REJECTED", "INVALID_BINARY":
+            return 64
+        default:
+            return 82
+        }
+    }
+
+    private static func formattedASCDate(_ value: String) -> String {
+        guard !value.isEmpty else { return "Unknown" }
+        let formatter = ISO8601DateFormatter()
+        guard let date = formatter.date(from: value) else { return value }
+        return date.formatted(date: .numeric, time: .shortened)
+    }
+
+    private static func iconSymbol(for bundleID: String) -> String {
+        if bundleID.localizedCaseInsensitiveContains("photo") || bundleID.localizedCaseInsensitiveContains("image") {
+            return "photo.fill"
+        }
+        if bundleID.localizedCaseInsensitiveContains("video") {
+            return "play.rectangle.fill"
+        }
+        if bundleID.localizedCaseInsensitiveContains("music") || bundleID.localizedCaseInsensitiveContains("audio") {
+            return "music.note.list"
+        }
+        return "app.fill"
+    }
+
+    private static func iconGradient(for id: String) -> [Color] {
+        let palettes: [[Color]] = [
+            [Theme.ColorToken.blue, Theme.ColorToken.purple],
+            [Theme.ColorToken.green, Theme.ColorToken.cyan],
+            [Theme.ColorToken.orange, Theme.ColorToken.purple],
+            [Color(hex: 0xF6C7A7), Theme.ColorToken.purple]
+        ]
+        return palettes[abs(id.hashValue) % palettes.count]
     }
 
     private static func suggestions(name: String, incomplete: Set<ReleaseModule>) -> [SuggestionItem] {

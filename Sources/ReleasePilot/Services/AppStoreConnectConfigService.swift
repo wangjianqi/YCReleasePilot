@@ -2,10 +2,12 @@ import Foundation
 
 final class AppStoreConnectConfigService {
     private let defaults: UserDefaults
+    private let apiService: AppStoreConnectAPIService
     private let storageKey = "releasepilot.appStoreConnectConfig"
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = .standard, apiService: AppStoreConnectAPIService = AppStoreConnectAPIService()) {
         self.defaults = defaults
+        self.apiService = apiService
     }
 
     func loadConfig() -> AppStoreConnectConfig {
@@ -26,8 +28,6 @@ final class AppStoreConnectConfigService {
     }
 
     func testConnection(_ config: AppStoreConnectConfig) async -> AppStoreConnectConnectionStatus {
-        try? await Task.sleep(for: .seconds(1))
-        let hasRequiredFields = !config.apiKeyID.isEmpty && !config.issuerID.isEmpty && !config.privateKeyFilePath.isEmpty && !config.teamID.isEmpty
-        return hasRequiredFields ? .connected : .missingFields
+        await apiService.testConnection(config: config)
     }
 }

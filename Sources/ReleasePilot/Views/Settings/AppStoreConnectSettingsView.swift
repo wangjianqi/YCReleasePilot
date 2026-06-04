@@ -43,7 +43,7 @@ struct AppStoreConnectSettingsView: View {
                 .foregroundStyle(Theme.ColorToken.blue)
             Text(viewModel.appStoreConnectConfig.privateKeyFileName.isEmpty ? "拖拽上传 .p8 Private Key 文件" : viewModel.appStoreConnectConfig.privateKeyFileName)
                 .font(.caption.weight(.semibold))
-            Text("仅保存本地文件路径用于 Mock 配置")
+            Text("仅保存本地文件路径，用于本机生成 App Store Connect JWT")
                 .font(.caption2)
                 .foregroundStyle(Theme.ColorToken.muted)
         }
