@@ -12,23 +12,8 @@ struct ReleaseCenterView: View {
                     metrics
                     ReleaseFlowView(steps: viewModel.releaseSteps)
                         .id(ReleaseModule.release)
-                    middleGrid
-                    SubmitReviewCardView(
-                        app: viewModel.selectedApp,
-                        readiness: viewModel.displayedReadiness,
-                        didSubmit: viewModel.didSubmit,
-                        canSubmit: viewModel.canSubmit,
-                        blockedMessage: viewModel.blockedSubmitMessage ?? viewModel.blockingWarnings.first,
-                        releasePlanSummary: viewModel.releasePlan.summary,
-                        showReleaseDetails: viewModel.showReleaseDetails
-                    ) {
-                        viewModel.requestSubmit()
-                    } onConfigurePlan: {
-                        viewModel.showReleasePlanDialog()
-                    } onToggleDetails: {
-                        viewModel.showReleaseDetails.toggle()
-                    }
-                    .id(ReleaseModule.reviewInfo)
+                    topDashboardRow
+                    bottomDashboardRow
                 }
                 .padding(18)
             }
@@ -120,43 +105,280 @@ struct ReleaseCenterView: View {
             .padding(.vertical, 18)
     }
 
-    private var middleGrid: some View {
-        Grid(horizontalSpacing: 12, verticalSpacing: 12) {
-            GridRow {
-                TodoCardView(
-                    todos: viewModel.visibleTodos,
-                    totalTodoCount: viewModel.todoItems.count,
-                    suggestions: viewModel.visibleSuggestions,
-                    totalSuggestionCount: viewModel.suggestions.count,
-                    showAllTodos: viewModel.showAllTodos,
-                    showAllSuggestions: viewModel.showAllSuggestions,
-                    onToggleTodos: { viewModel.showAllTodos.toggle() },
-                    onToggleSuggestions: { viewModel.showAllSuggestions.toggle() }
-                ) { todo in
-                    viewModel.handleTodo(todo)
+    private var topDashboardRow: some View {
+        HStack(alignment: .top, spacing: 12) {
+            TodoCardView(
+                todos: viewModel.visibleTodos,
+                totalTodoCount: viewModel.todoItems.count,
+                suggestions: viewModel.visibleSuggestions,
+                totalSuggestionCount: viewModel.suggestions.count,
+                showAllTodos: viewModel.showAllTodos,
+                showAllSuggestions: viewModel.showAllSuggestions,
+                onToggleTodos: { viewModel.showAllTodos.toggle() },
+                onToggleSuggestions: { viewModel.showAllSuggestions.toggle() }
+            ) { todo in
+                viewModel.handleTodo(todo)
+            }
+            .id(ReleaseModule.metadata)
+            .frame(width: 250)
+
+            ScreenshotPreviewView(
+                selectedDevice: $viewModel.selectedScreenshotDevice,
+                screenshots: viewModel.screenshots,
+                isFocused: viewModel.focusedModule == .screenshots,
+                onAdd: { viewModel.addScreenshot() },
+                onDelete: { viewModel.deleteScreenshot($0) },
+                onReplace: { viewModel.replaceScreenshot($0) }
+            )
+            .id(ReleaseModule.screenshots)
+            .frame(maxWidth: .infinity)
+
+            VStack(spacing: 12) {
+                SubmissionInfoCard(
+                    app: viewModel.selectedApp,
+                    readiness: viewModel.displayedReadiness,
+                    status: viewModel.displayedStatus
+                )
+                ReleasePlanSummaryCard(
+                    releasePlanSummary: viewModel.releasePlan.summary,
+                    canSubmit: viewModel.canSubmit
+                )
+            }
+            .id(ReleaseModule.reviewInfo)
+            .frame(width: 250)
+        }
+    }
+
+    private var bottomDashboardRow: some View {
+        HStack(alignment: .top, spacing: 12) {
+            BuildCardView(
+                builds: viewModel.visibleBuilds,
+                showAllBuilds: viewModel.showAllBuilds,
+                onToggleBuilds: { viewModel.showAllBuilds.toggle() },
+                onShowAllVersions: { viewModel.showVersionHistory() },
+                onShowBuildDetail: { viewModel.showBuildDetail($0) }
+            )
+            .id(ReleaseModule.build)
+            .frame(width: 360)
+
+            SubmissionHeroCard(
+                app: viewModel.selectedApp,
+                didSubmit: viewModel.didSubmit,
+                canSubmit: viewModel.canSubmit,
+                blockedMessage: viewModel.blockedSubmitMessage ?? viewModel.blockingWarnings.first,
+                onSubmit: { viewModel.requestSubmit() },
+                onPreview: { viewModel.showReleaseDetails.toggle() }
+            )
+            .id(ReleaseModule.release)
+            .frame(maxWidth: .infinity)
+
+            ReleaseOptimizationCard(items: viewModel.completionItems)
+                .frame(width: 200)
+
+            PostReleasePlanCard(onConfigurePlan: { viewModel.showReleasePlanDialog() })
+                .frame(width: 220)
+        }
+    }
+}
+
+private struct SubmissionInfoCard: View {
+    let app: AppItem
+    let readiness: Int
+    let status: String
+
+    var body: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Text(AppStrings.submitInfo)
+                        .font(.headline)
+                    Spacer()
+                    SmallGlassButton(title: "编辑")
                 }
-                .id(ReleaseModule.metadata)
-                    .gridCellColumns(1)
-                BuildCardView(
-                    builds: viewModel.visibleBuilds,
-                    showAllBuilds: viewModel.showAllBuilds,
-                    onToggleBuilds: { viewModel.showAllBuilds.toggle() },
-                    onShowAllVersions: { viewModel.showVersionHistory() },
-                    onShowBuildDetail: { viewModel.showBuildDetail($0) }
-                )
-                    .id(ReleaseModule.build)
-                    .gridCellColumns(1)
-                ScreenshotPreviewView(
-                    selectedDevice: $viewModel.selectedScreenshotDevice,
-                    screenshots: viewModel.screenshots,
-                    isFocused: viewModel.focusedModule == .screenshots,
-                    onAdd: { viewModel.addScreenshot() },
-                    onDelete: { viewModel.deleteScreenshot($0) },
-                    onReplace: { viewModel.replaceScreenshot($0) }
-                )
-                .id(ReleaseModule.screenshots)
-                    .gridCellColumns(2)
+                info("应用", app.name)
+                info("版本", "\(app.version) (\(app.buildNumber))")
+                info("平台", "iOS, iPadOS, macOS")
+                info("语言", "5 种语言")
+                info("构建", "\(app.buildNumber)")
+                info("准备度", "\(readiness)%")
+                info("状态", status)
             }
         }
+    }
+
+    private func info(_ label: String, _ value: String) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(label)
+                .foregroundStyle(Theme.ColorToken.muted)
+                .frame(width: 58, alignment: .leading)
+            Text(value)
+                .fontWeight(.semibold)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+            Spacer(minLength: 0)
+        }
+        .font(.caption)
+    }
+}
+
+private struct ReleasePlanSummaryCard: View {
+    let releasePlanSummary: String
+    let canSubmit: Bool
+
+    var body: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("发布计划")
+                    .font(.headline)
+                status("平滑发布", releasePlanSummary, isOn: true)
+                status("优先地区预热", "关闭", isOn: false)
+                status("全球范围自然增长", canSubmit ? "开启" : "关闭", isOn: canSubmit)
+            }
+        }
+    }
+
+    private func status(_ title: String, _ value: String, isOn: Bool) -> some View {
+        Label {
+            HStack {
+                Text(title)
+                Spacer(minLength: 8)
+                Text(value)
+                    .foregroundStyle(Theme.ColorToken.muted)
+                    .lineLimit(1)
+            }
+        } icon: {
+            Image(systemName: isOn ? "checkmark.circle.fill" : "clock.fill")
+                .foregroundStyle(isOn ? Theme.ColorToken.green : Theme.ColorToken.soft)
+        }
+        .font(.caption)
+        .foregroundStyle(Theme.ColorToken.soft)
+    }
+}
+
+private struct SubmissionHeroCard: View {
+    let app: AppItem
+    let didSubmit: Bool
+    let canSubmit: Bool
+    let blockedMessage: String?
+    let onSubmit: () -> Void
+    let onPreview: () -> Void
+
+    var body: some View {
+        GlassCard(cornerRadius: 20, padding: 0) {
+            VStack(spacing: 14) {
+                HStack(spacing: 18) {
+                    ZStack {
+                        Circle()
+                            .fill(LinearGradient(colors: [Theme.ColorToken.blue, Theme.ColorToken.purple], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: 74, height: 74)
+                            .shadow(color: Theme.ColorToken.purple.opacity(0.45), radius: 24, x: 0, y: 12)
+                        Image(systemName: "paperplane.fill")
+                            .font(.system(size: 34, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .rotationEffect(.degrees(-18))
+                    }
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(AppStrings.submitTitle)
+                            .font(.title3.weight(.bold))
+                        Text("版本: \(app.version) (\(app.buildNumber)) · iOS/iPadOS/macOS")
+                            .font(.caption)
+                            .foregroundStyle(Theme.ColorToken.muted)
+                    }
+                    Spacer()
+                }
+
+                Button(action: onSubmit) {
+                    HStack(spacing: 10) {
+                        Image(systemName: "paperplane.fill")
+                        Text(didSubmit ? "已模拟提交" : "准备提交")
+                            .fontWeight(.semibold)
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 52)
+                    .background(LinearGradient(colors: [Theme.ColorToken.blue, Theme.ColorToken.purple], startPoint: .leading, endPoint: .trailing))
+                    .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.button, style: .continuous))
+                    .shadow(color: Theme.ColorToken.blue.opacity(0.28), radius: 18, x: 0, y: 10)
+                }
+                .buttonStyle(.plain)
+                    .frame(width: 260)
+
+                Label(canSubmit ? "还剩 0 项待优化，已满足提交条件" : "还有 \(blockedMessage ?? "待处理项目")", systemImage: canSubmit ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(canSubmit ? Theme.ColorToken.green : Theme.ColorToken.orange)
+
+                SmallGlassButton(title: "查看提交预览", systemImage: "eye", action: onPreview)
+                    .frame(width: 160)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(20)
+            .background(
+                LinearGradient(colors: [Theme.ColorToken.purple.opacity(0.42), Theme.ColorToken.blue.opacity(0.28), Theme.ColorToken.panel.opacity(0.36)], startPoint: .topLeading, endPoint: .bottomTrailing)
+            )
+        }
+    }
+}
+
+private struct ReleaseOptimizationCard: View {
+    let items: [CompletionItem]
+
+    var body: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 14) {
+                Text("发布优化")
+                    .font(.headline)
+                ForEach(items.prefix(4)) { item in
+                    Label {
+                        Text(label(for: item))
+                            .lineLimit(1)
+                    } icon: {
+                        Image(systemName: item.percent >= 90 ? "checkmark.circle.fill" : "clock.fill")
+                            .foregroundStyle(item.percent >= 90 ? Theme.ColorToken.green : Theme.ColorToken.orange)
+                    }
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(Theme.ColorToken.soft)
+                }
+            }
+        }
+    }
+
+    private func label(for item: CompletionItem) -> String {
+        item.percent >= 90 ? "\(item.title)已完善" : "\(item.title)需优化"
+    }
+}
+
+private struct PostReleasePlanCard: View {
+    let onConfigurePlan: () -> Void
+
+    var body: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 14) {
+                Text(AppStrings.postReleasePlan)
+                    .font(.headline)
+                plan("监控每日核心指标", value: "开启")
+                plan("宣传创意测试", value: "关闭")
+                plan("发布后活动设计", value: "关闭")
+                Spacer(minLength: 8)
+                SmallGlassButton(title: "配置发布计划", action: onConfigurePlan)
+                    .frame(maxWidth: .infinity)
+            }
+        }
+    }
+
+    private func plan(_ title: String, value: String) -> some View {
+        Label {
+            HStack {
+                Text(title)
+                Spacer(minLength: 8)
+                Text(value)
+                    .foregroundStyle(Theme.ColorToken.muted)
+            }
+        } icon: {
+            Image(systemName: "clock.fill")
+                .foregroundStyle(Theme.ColorToken.soft)
+        }
+        .font(.caption)
+        .foregroundStyle(Theme.ColorToken.soft)
     }
 }
