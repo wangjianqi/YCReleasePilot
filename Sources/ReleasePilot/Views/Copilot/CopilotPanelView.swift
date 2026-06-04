@@ -97,10 +97,10 @@ struct CopilotPanelView: View {
     private var quickActions: some View {
         VStack(spacing: 10) {
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
-                CopilotQuickActionView(title: "优化副标题", systemImage: "textformat.size") { quick("正在优化标题与副标题...") }
-                CopilotQuickActionView(title: "生成关键词", systemImage: "key.fill") { quick("正在生成关键词方案...") }
-                CopilotQuickActionView(title: "翻译描述", systemImage: "globe") { quick("正在翻译描述...") }
-                CopilotQuickActionView(title: "ASO 分析", systemImage: "chart.line.uptrend.xyaxis") { quick("正在进行 ASO 分析...") }
+                CopilotQuickActionView(title: "生成审核备注", systemImage: "doc.text.fill") { viewModel.generateReviewNote() }
+                CopilotQuickActionView(title: "优化关键词", systemImage: "key.fill") { viewModel.optimizeKeywords() }
+                CopilotQuickActionView(title: "翻译描述", systemImage: "globe") { viewModel.quickCopilot("正在翻译 \(viewModel.selectedApp.name) 描述...") }
+                CopilotQuickActionView(title: "ASO 分析", systemImage: "chart.line.uptrend.xyaxis") { viewModel.quickCopilot("正在进行 \(viewModel.selectedApp.name) ASO 分析...") }
             }
         }
     }
@@ -137,9 +137,5 @@ struct CopilotPanelView: View {
             .font(.caption2)
             .foregroundStyle(Theme.ColorToken.muted)
             .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private func quick(_ text: String) {
-        viewModel.copilotMessages.append(CopilotMessage(role: .assistant, title: text, body: "这是本地 Mock 反馈。后续可以接入 AI 网关或 OpenAI API，把结果写回元数据、关键词和审核信息。"))
     }
 }

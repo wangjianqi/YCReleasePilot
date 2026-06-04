@@ -4,17 +4,33 @@ struct ReleaseCenterView: View {
     @Bindable var viewModel: ReleaseDashboardViewModel
 
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 12) {
-                header
-                metrics
-                ReleaseFlowView(steps: viewModel.releaseSteps)
-                middleGrid
-                SubmitReviewCardView(app: viewModel.selectedApp, readiness: viewModel.displayedReadiness, didSubmit: viewModel.didSubmit) {
-                    viewModel.requestSubmit()
+        ScrollViewReader { proxy in
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 12) {
+                    header
+                    metrics
+                    ReleaseFlowView(steps: viewModel.releaseSteps)
+                        .id(ReleaseModule.release)
+                    middleGrid
+                    SubmitReviewCardView(
+                        app: viewModel.selectedApp,
+                        readiness: viewModel.displayedReadiness,
+                        didSubmit: viewModel.didSubmit,
+                        canSubmit: viewModel.canSubmit,
+                        blockedMessage: viewModel.blockedSubmitMessage ?? viewModel.blockingWarnings.first
+                    ) {
+                        viewModel.requestSubmit()
+                    }
+                    .id(ReleaseModule.reviewInfo)
+                }
+                .padding(18)
+            }
+            .onChange(of: viewModel.focusedModule) { _, module in
+                guard let module else { return }
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    proxy.scrollTo(module, anchor: .center)
                 }
             }
-            .padding(18)
         }
         .background(surface)
     }
@@ -57,7 +73,7 @@ struct ReleaseCenterView: View {
                 MetricCardView(title: AppStrings.readiness) {
                     CircularProgressView(percent: viewModel.displayedReadiness)
                         .frame(maxWidth: .infinity)
-                    Text("还差 \(viewModel.reviewNoteApplied ? 1 : 2) 项即可提交审核")
+                    Text(viewModel.canSubmit ? "所有必需检查项已完成" : "还差 \(viewModel.blockingWarnings.count) 项即可提交审核")
                         .font(.caption)
                         .foregroundStyle(Theme.ColorToken.muted)
                         .frame(maxWidth: .infinity)
@@ -92,11 +108,23 @@ struct ReleaseCenterView: View {
     private var middleGrid: some View {
         Grid(horizontalSpacing: 12, verticalSpacing: 12) {
             GridRow {
-                TodoCardView(todos: viewModel.todoItems, suggestions: MockData.suggestions)
+                TodoCardView(todos: viewModel.todoItems, suggestions: viewModel.suggestions) { todo in
+                    viewModel.handleTodo(todo)
+                }
+                .id(ReleaseModule.metadata)
                     .gridCellColumns(1)
                 BuildCardView(builds: viewModel.builds)
+                    .id(ReleaseModule.build)
                     .gridCellColumns(1)
-                ScreenshotPreviewView(selectedDevice: $viewModel.selectedScreenshotDevice, screenshots: viewModel.screenshots)
+                ScreenshotPreviewView(
+                    selectedDevice: $viewModel.selectedScreenshotDevice,
+                    screenshots: viewModel.screenshots,
+                    isFocused: viewModel.focusedModule == .screenshots,
+                    onAdd: { viewModel.addScreenshot() },
+                    onDelete: { viewModel.deleteScreenshot($0) },
+                    onReplace: { viewModel.replaceScreenshot($0) }
+                )
+                .id(ReleaseModule.screenshots)
                     .gridCellColumns(2)
             }
         }

@@ -4,6 +4,8 @@ struct SubmitReviewCardView: View {
     let app: AppItem
     let readiness: Int
     let didSubmit: Bool
+    let canSubmit: Bool
+    let blockedMessage: String?
     let onSubmit: () -> Void
 
     var body: some View {
@@ -28,11 +30,11 @@ struct SubmitReviewCardView: View {
                     Text(AppStrings.submitSubtitle)
                         .font(.caption)
                         .foregroundStyle(Theme.ColorToken.muted)
-                    PrimaryButton(title: didSubmit ? "已模拟提交" : AppStrings.submitReview, systemImage: "paperplane.fill", action: onSubmit)
+                    PrimaryButton(title: didSubmit ? "已模拟提交" : AppStrings.submitReview, systemImage: "paperplane.fill", isEnabled: canSubmit, action: onSubmit)
                         .frame(width: 220)
-                    Label("提交即表示同意遵守 App Store 审核指南", systemImage: "lock.fill")
+                    Label(canSubmit ? "提交即表示同意遵守 App Store 审核指南" : (blockedMessage ?? "完成所有检查项后才能提交审核"), systemImage: canSubmit ? "lock.fill" : "exclamationmark.triangle.fill")
                         .font(.caption2)
-                        .foregroundStyle(Theme.ColorToken.muted)
+                        .foregroundStyle(canSubmit ? Theme.ColorToken.muted : Theme.ColorToken.orange)
                 }
                 Spacer()
             }

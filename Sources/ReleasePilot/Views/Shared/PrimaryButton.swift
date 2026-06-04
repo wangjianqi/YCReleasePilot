@@ -3,10 +3,15 @@ import SwiftUI
 struct PrimaryButton: View {
     let title: String
     var systemImage: String?
+    var isEnabled: Bool = true
     var action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button {
+            if isEnabled {
+                action()
+            }
+        } label: {
             HStack(spacing: 8) {
                 if let systemImage {
                     Image(systemName: systemImage)
@@ -18,12 +23,13 @@ struct PrimaryButton: View {
             .frame(maxWidth: .infinity)
             .frame(height: 44)
             .background(
-                LinearGradient(colors: [Theme.ColorToken.blue, Theme.ColorToken.purple], startPoint: .leading, endPoint: .trailing)
+                LinearGradient(colors: isEnabled ? [Theme.ColorToken.blue, Theme.ColorToken.purple] : [Color.white.opacity(0.12), Color.white.opacity(0.08)], startPoint: .leading, endPoint: .trailing)
             )
             .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.button, style: .continuous))
-            .shadow(color: Theme.ColorToken.blue.opacity(0.26), radius: 18, x: 0, y: 10)
+            .shadow(color: isEnabled ? Theme.ColorToken.blue.opacity(0.26) : .clear, radius: 18, x: 0, y: 10)
         }
         .buttonStyle(.plain)
+        .disabled(!isEnabled)
     }
 }
 

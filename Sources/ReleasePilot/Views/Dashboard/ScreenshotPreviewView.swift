@@ -3,15 +3,19 @@ import SwiftUI
 struct ScreenshotPreviewView: View {
     @Binding var selectedDevice: ScreenshotDevice
     let screenshots: [ScreenshotItem]
+    var isFocused: Bool
+    let onAdd: () -> Void
+    let onDelete: (ScreenshotItem) -> Void
+    let onReplace: (ScreenshotItem) -> Void
 
     var body: some View {
-        GlassCard {
+        GlassCard(cornerRadius: Theme.Radius.large, padding: 16) {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     Text(AppStrings.screenshotPreview)
                         .font(.headline)
                     Spacer()
-                    SmallGlassButton(title: "管理截图")
+                    SmallGlassButton(title: "添加截图", systemImage: "plus", action: onAdd)
                 }
 
                 HStack(spacing: 6) {
@@ -33,18 +37,25 @@ struct ScreenshotPreviewView: View {
 
                 HStack(spacing: 13) {
                     ForEach(screenshots) { item in
-                        ScreenshotPhoneView(item: item)
+                        ScreenshotPhoneView(item: item, onDelete: { onDelete(item) }, onReplace: { onReplace(item) })
                     }
-                    AddScreenshotView()
+                    AddScreenshotView(onAdd: onAdd)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.Radius.large, style: .continuous)
+                .stroke(isFocused ? Theme.ColorToken.blue.opacity(0.85) : Color.clear, lineWidth: 2)
+        )
     }
 }
 
 private struct ScreenshotPhoneView: View {
     let item: ScreenshotItem
+    let onDelete: () -> Void
+    let onReplace: () -> Void
+    @State private var isHovering = false
 
     var body: some View {
         VStack(spacing: 8) {
@@ -68,6 +79,26 @@ private struct ScreenshotPhoneView: View {
                 }
                 .foregroundStyle(.white)
                 .padding(.top, 18)
+
+                if isHovering {
+                    VStack(spacing: 6) {
+                        Button(action: onReplace) {
+                            Image(systemName: "arrow.triangle.2.circlepath")
+                                .font(.caption.weight(.bold))
+                                .frame(width: 24, height: 24)
+                        }
+                        Button(action: onDelete) {
+                            Image(systemName: "trash")
+                                .font(.caption.weight(.bold))
+                                .frame(width: 24, height: 24)
+                        }
+                    }
+                    .foregroundStyle(.white)
+                    .background(Color.black.opacity(0.36))
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .offset(x: 22, y: -48)
+                    .buttonStyle(.plain)
+                }
             }
             .frame(width: 78, height: 156)
             .overlay(
@@ -79,23 +110,29 @@ private struct ScreenshotPhoneView: View {
                 .foregroundStyle(item.hasWarning ? Theme.ColorToken.orange : Theme.ColorToken.green)
                 .font(.caption)
         }
+        .onHover { isHovering = $0 }
     }
 }
 
 private struct AddScreenshotView: View {
+    let onAdd: () -> Void
+
     var body: some View {
-        VStack(spacing: 8) {
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(style: StrokeStyle(lineWidth: 1, dash: [5, 5]))
-                .foregroundStyle(Color.white.opacity(0.20))
-                .frame(width: 78, height: 156)
-                .overlay(
-                    Image(systemName: "plus")
-                        .font(.title3)
-                        .foregroundStyle(Theme.ColorToken.muted)
-                )
-            Text(" ")
-                .font(.caption)
+        Button(action: onAdd) {
+            VStack(spacing: 8) {
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .stroke(style: StrokeStyle(lineWidth: 1, dash: [5, 5]))
+                    .foregroundStyle(Color.white.opacity(0.20))
+                    .frame(width: 78, height: 156)
+                    .overlay(
+                        Image(systemName: "plus")
+                            .font(.title3)
+                            .foregroundStyle(Theme.ColorToken.muted)
+                    )
+                Text(" ")
+                    .font(.caption)
+            }
         }
+        .buttonStyle(.plain)
     }
 }

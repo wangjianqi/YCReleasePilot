@@ -7,9 +7,24 @@ enum ScreenshotDevice: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
-struct ScreenshotItem: Identifiable {
-    let id: Int
-    let title: String
-    let subtitle: String
-    let hasWarning: Bool
+struct ScreenshotItem: Identifiable, Hashable {
+    let id: String
+    let device: ScreenshotDevice
+    var slot: Int
+    var title: String
+    var subtitle: String
+    var hasWarning: Bool
+    var isPlaceholder: Bool
+    var styleIndex: Int
+
+    init(id: String, device: ScreenshotDevice, slot: Int, title: String, subtitle: String, hasWarning: Bool = false, isPlaceholder: Bool = false, styleIndex: Int = 0) {
+        self.id = id
+        self.device = device
+        self.slot = slot
+        self.title = title
+        self.subtitle = subtitle
+        self.hasWarning = hasWarning
+        self.isPlaceholder = isPlaceholder
+        self.styleIndex = styleIndex
+    }
 }

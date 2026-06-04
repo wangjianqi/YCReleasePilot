@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct AppItem: Identifiable, Hashable {
-    let id: UUID
+    let id: String
     let name: String
     let version: String
     let buildNumber: Int
