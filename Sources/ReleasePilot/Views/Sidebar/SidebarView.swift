@@ -149,17 +149,49 @@ struct SidebarView: View {
     }
 
     private var proPlan: some View {
-        GlassCard(cornerRadius: Theme.Radius.large, padding: 14) {
-            VStack(alignment: .leading, spacing: 10) {
-                Label(membershipViewModel.status.isPaid ? "\(membershipViewModel.status.title) Plan" : AppStrings.proPlan, systemImage: "diamond.fill")
-                    .font(.headline)
-                    .foregroundStyle(Color(hex: 0xFDE047))
-                Text(membershipViewModel.status.isPaid ? "AI Copilot Unlimited" : "升级后解锁完整 AI Copilot")
-                    .font(.caption)
-                    .foregroundStyle(Theme.ColorToken.muted)
-                SmallGlassButton(title: AppStrings.managePlan, systemImage: "arrow.right", action: onManagePlan)
+        Button(action: onManagePlan) {
+            HStack(spacing: 12) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(Color(hex: 0xFDE047).opacity(0.12))
+                    Image(systemName: "diamond.fill")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Color(hex: 0xFDE047))
+                }
+                .frame(width: 28, height: 28)
+
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(membershipViewModel.status.isPaid ? "\(membershipViewModel.status.title) Plan" : AppStrings.proPlan)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Theme.ColorToken.text)
+                    Text(membershipViewModel.status.isPaid ? "AI Copilot Unlimited" : "升级后解锁完整 AI Copilot")
+                        .font(.system(size: 10, weight: .regular))
+                        .foregroundStyle(Theme.ColorToken.muted)
+                }
+
+                Spacer()
+
+                HStack(spacing: 3) {
+                    Text(AppStrings.managePlan)
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundStyle(Theme.ColorToken.blue)
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 8, weight: .semibold))
+                        .foregroundStyle(Theme.ColorToken.blue)
+                }
             }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: Theme.Radius.large, style: .continuous)
+                    .fill(Theme.ColorToken.panelRaised.opacity(0.6))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Theme.Radius.large, style: .continuous)
+                            .stroke(Theme.ColorToken.line, lineWidth: 1)
+                    )
+            )
         }
+        .buttonStyle(.plain)
     }
 
     private var userInfo: some View {

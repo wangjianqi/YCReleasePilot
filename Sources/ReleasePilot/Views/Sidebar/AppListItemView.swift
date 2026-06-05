@@ -6,15 +6,15 @@ struct AppListItemView: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            AppIconView(app: app, size: 40)
+            AppIconView(app: app, size: 34)
 
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(app.name)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(Theme.ColorToken.text)
                     .lineLimit(1)
                 Text("\(app.version) (\(app.buildNumber))")
-                    .font(.caption)
+                    .font(.system(size: 11, weight: .regular))
                     .foregroundStyle(Theme.ColorToken.muted)
             }
 
@@ -22,10 +22,10 @@ struct AppListItemView: View {
 
             Circle()
                 .fill(isSelected ? Theme.ColorToken.blue : Color.white.opacity(0.18))
-                .frame(width: 8, height: 8)
+                .frame(width: 6, height: 6)
         }
-        .padding(.horizontal, 10)
-        .frame(height: 58)
+        .padding(.horizontal, 8)
+        .frame(height: 48)
         .background(isSelected ? Theme.ColorToken.blue.opacity(0.18) : Color.white.opacity(0.02))
         .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.small, style: .continuous))
         .overlay(
