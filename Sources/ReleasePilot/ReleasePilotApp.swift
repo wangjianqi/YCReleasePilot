@@ -13,6 +13,19 @@ struct ReleasePilotApp: App {
         }
         .defaultSize(width: 1440, height: 920)
         .windowStyle(.hiddenTitleBar)
+        .commands {
+            CommandGroup(after: .windowArrangement) {
+                Button("切换全屏") {
+                    toggleFullScreen()
+                }
+                .keyboardShortcut("f", modifiers: [.control, .command])
+            }
+        }
+    }
+
+    private func toggleFullScreen() {
+        guard let window = NSApp.mainWindow else { return }
+        window.toggleFullScreen(nil)
     }
 }
 
