@@ -3,7 +3,9 @@ import SwiftUI
 struct BuildCardView: View {
     let builds: [BuildInfo]
     let showAllBuilds: Bool
+    let isRefreshing: Bool
     let onToggleBuilds: () -> Void
+    let onRefresh: () -> Void
     let onShowAllVersions: () -> Void
     let onShowBuildDetail: (BuildInfo) -> Void
 
@@ -14,6 +16,12 @@ struct BuildCardView: View {
                     Text(AppStrings.currentBuild)
                         .font(.headline)
                     Spacer()
+                    SmallGlassButton(
+                        title: isRefreshing ? "更新中" : "更新构建",
+                        systemImage: isRefreshing ? "arrow.triangle.2.circlepath" : "arrow.clockwise",
+                        action: onRefresh
+                    )
+                    .disabled(isRefreshing)
                     SmallGlassButton(title: showAllBuilds ? "收起" : "查看全部", action: onToggleBuilds)
                 }
 

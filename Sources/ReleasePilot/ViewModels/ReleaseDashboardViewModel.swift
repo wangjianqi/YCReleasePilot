@@ -31,6 +31,8 @@ final class ReleaseDashboardViewModel {
     var showReleaseDetails = false
     var isSyncingAppStoreConnect = false
     var isRefreshingAppStoreConnectStatus = false
+    var isRefreshingAppIcons = false
+    var isRefreshingScreenshots = false
     var appStoreConnectSyncMessage: String?
     var isUsingAppStoreConnectData = false
     var appStoreConnectAccountTitle: String?
@@ -299,7 +301,7 @@ final class ReleaseDashboardViewModel {
                     return
                 }
                 appStoreConnectSnapshotCacheService.save(snapshots, for: config)
-                applyAppStoreConnectSnapshots(snapshots, config: config, preferredAppID: selectedAppID, preferredPlatform: selectedPlatform)
+                applyAppStoreConnectSnapshots(snapshots, config: config, preferredAppID: selectedAppID, preferredPlatform: selectedPlatform, preferredScreenshotDevice: selectedScreenshotDevice)
                 appStoreConnectSyncMessage = "已同步 \(snapshots.count) 个 App Store Connect App"
                 showToast(appStoreConnectSyncMessage ?? "同步成功")
             } catch {
@@ -320,12 +322,13 @@ final class ReleaseDashboardViewModel {
                 let config = appStoreConnectConfigService.loadConfig()
                 guard let cachedSnapshots = appStoreConnectSnapshotCacheService.loadCachedSnapshot(for: config), !cachedSnapshots.isEmpty else {
                     isRefreshingAppStoreConnectStatus = false
-                    syncAppStoreConnect()
+                    appStoreConnectSyncMessage = "没有可更新的缓存，请先完整同步"
+                    showToast(appStoreConnectSyncMessage ?? "请先完整同步")
                     return
                 }
                 let snapshots = try await appStoreConnectAPIService.refreshStatuses(config: config, snapshots: cachedSnapshots)
                 appStoreConnectSnapshotCacheService.save(snapshots, for: config)
-                applyAppStoreConnectSnapshots(snapshots, config: config, preferredAppID: selectedAppID, preferredPlatform: selectedPlatform)
+                applyAppStoreConnectSnapshots(snapshots, config: config, preferredAppID: selectedAppID, preferredPlatform: selectedPlatform, preferredScreenshotDevice: selectedScreenshotDevice)
                 appStoreConnectSyncMessage = "已更新 App 状态和构建信息"
                 showToast(appStoreConnectSyncMessage ?? "状态已更新")
             } catch {
@@ -337,16 +340,79 @@ final class ReleaseDashboardViewModel {
         }
     }
 
+    func refreshAppIcons() {
+        guard !isRefreshingAppIcons else { return }
+        isRefreshingAppIcons = true
+        appStoreConnectSyncMessage = nil
+        Task { @MainActor in
+            do {
+                let config = appStoreConnectConfigService.loadConfig()
+                guard let cachedSnapshots = appStoreConnectSnapshotCacheService.loadCachedSnapshot(for: config), !cachedSnapshots.isEmpty else {
+                    appStoreConnectSyncMessage = "没有 App 列表缓存，请先完整同步"
+                    showToast(appStoreConnectSyncMessage ?? "请先完整同步")
+                    isRefreshingAppIcons = false
+                    return
+                }
+                let snapshots = try await appStoreConnectAPIService.refreshMissingIcons(config: config, snapshots: cachedSnapshots)
+                appStoreConnectSnapshotCacheService.save(snapshots, for: config)
+                applyAppStoreConnectSnapshots(snapshots, config: config, preferredAppID: selectedAppID, preferredPlatform: selectedPlatform, preferredScreenshotDevice: selectedScreenshotDevice)
+                appStoreConnectSyncMessage = "已补齐缺失的 App 图标缓存"
+                showToast(appStoreConnectSyncMessage ?? "图标已更新")
+            } catch {
+                let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                appStoreConnectSyncMessage = message
+                showToast(message)
+            }
+            isRefreshingAppIcons = false
+        }
+    }
+
+    func refreshSelectedAppScreenshots() {
+        guard !isRefreshingScreenshots else { return }
+        isRefreshingScreenshots = true
+        appStoreConnectSyncMessage = nil
+        Task { @MainActor in
+            do {
+                let config = appStoreConnectConfigService.loadConfig()
+                guard var cachedSnapshots = appStoreConnectSnapshotCacheService.loadCachedSnapshot(for: config), !cachedSnapshots.isEmpty else {
+                    appStoreConnectSyncMessage = "没有截图缓存，请先完整同步"
+                    showToast(appStoreConnectSyncMessage ?? "请先完整同步")
+                    isRefreshingScreenshots = false
+                    return
+                }
+                guard let index = cachedSnapshots.firstIndex(where: { $0.id == selectedAppID }) else {
+                    appStoreConnectSyncMessage = "当前 App 不在 App Store Connect 缓存中"
+                    showToast(appStoreConnectSyncMessage ?? "当前 App 无缓存")
+                    isRefreshingScreenshots = false
+                    return
+                }
+                cachedSnapshots[index] = try await appStoreConnectAPIService.refreshScreenshots(
+                    config: config,
+                    snapshot: cachedSnapshots[index]
+                )
+                appStoreConnectSnapshotCacheService.save(cachedSnapshots, for: config)
+                applyAppStoreConnectSnapshots(cachedSnapshots, config: config, preferredAppID: selectedAppID, preferredPlatform: selectedPlatform, preferredScreenshotDevice: selectedScreenshotDevice)
+                appStoreConnectSyncMessage = "已刷新当前 App 的截图缓存"
+                showToast(appStoreConnectSyncMessage ?? "截图已更新")
+            } catch {
+                let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                appStoreConnectSyncMessage = message
+                showToast(message)
+            }
+            isRefreshingScreenshots = false
+        }
+    }
+
     private func loadCachedAppStoreConnectDataIfAvailable() {
         let config = appStoreConnectConfigService.loadConfig()
         guard let snapshots = appStoreConnectSnapshotCacheService.loadCachedSnapshot(for: config), !snapshots.isEmpty else {
             return
         }
-        applyAppStoreConnectSnapshots(snapshots, config: config, preferredAppID: selectedAppID, preferredPlatform: selectedPlatform)
+        applyAppStoreConnectSnapshots(snapshots, config: config, preferredAppID: selectedAppID, preferredPlatform: selectedPlatform, preferredScreenshotDevice: selectedScreenshotDevice)
         appStoreConnectSyncMessage = "已加载本地 App Store Connect 缓存"
     }
 
-    private func applyAppStoreConnectSnapshots(_ snapshots: [AppStoreConnectAppSnapshot], config: AppStoreConnectConfig, preferredAppID: AppItem.ID? = nil, preferredPlatform: Platform? = nil) {
+    private func applyAppStoreConnectSnapshots(_ snapshots: [AppStoreConnectAppSnapshot], config: AppStoreConnectConfig, preferredAppID: AppItem.ID? = nil, preferredPlatform: Platform? = nil, preferredScreenshotDevice: ScreenshotDevice? = nil) {
         let releases = snapshots.map { MockData.makeRelease(from: $0) }
         guard let firstRelease = releases.first, let firstSnapshot = snapshots.first else {
             appStoreConnectSyncMessage = "App Store Connect 没有返回可见 App。"
@@ -362,7 +428,7 @@ final class ReleaseDashboardViewModel {
         let nextPlatform = preferredPlatform ?? firstPlatform
         selectedAppID = nextAppID
         selectedPlatform = nextPlatform
-        selectedScreenshotDevice = defaultScreenshotDevice(for: nextPlatform)
+        selectedScreenshotDevice = preferredScreenshotDevice ?? defaultScreenshotDevice(for: nextPlatform)
         focusedModule = nil
         didSubmit = false
         blockedSubmitMessage = nil

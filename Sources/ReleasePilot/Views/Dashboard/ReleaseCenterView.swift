@@ -139,7 +139,9 @@ struct ReleaseCenterView: View {
                 isFocused: viewModel.focusedModule == .screenshots,
                 onAdd: { viewModel.addScreenshot() },
                 onDelete: { viewModel.deleteScreenshot($0) },
-                onReplace: { viewModel.replaceScreenshot($0) }
+                onReplace: { viewModel.replaceScreenshot($0) },
+                isRefreshing: viewModel.isRefreshingScreenshots,
+                onRefresh: { viewModel.refreshSelectedAppScreenshots() }
             )
             .id(ReleaseModule.screenshots)
             .frame(maxWidth: .infinity)
@@ -168,7 +170,9 @@ struct ReleaseCenterView: View {
             BuildCardView(
                 builds: viewModel.visibleBuilds,
                 showAllBuilds: viewModel.showAllBuilds,
+                isRefreshing: viewModel.isRefreshingAppStoreConnectStatus,
                 onToggleBuilds: { viewModel.showAllBuilds.toggle() },
+                onRefresh: { viewModel.refreshAppStoreConnectStatus() },
                 onShowAllVersions: { viewModel.showVersionHistory() },
                 onShowBuildDetail: { viewModel.showBuildDetail($0) }
             )

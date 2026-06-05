@@ -7,6 +7,8 @@ struct ScreenshotPreviewView: View {
     let onAdd: () -> Void
     let onDelete: (ScreenshotItem) -> Void
     let onReplace: (ScreenshotItem) -> Void
+    let isRefreshing: Bool
+    let onRefresh: () -> Void
 
     var body: some View {
         GlassCard(cornerRadius: Theme.Radius.large, padding: 16) {
@@ -20,6 +22,12 @@ struct ScreenshotPreviewView: View {
                             .foregroundStyle(Theme.ColorToken.muted)
                     }
                     Spacer()
+                    SmallGlassButton(
+                        title: isRefreshing ? "刷新中" : "刷新截图",
+                        systemImage: isRefreshing ? "arrow.triangle.2.circlepath" : "arrow.clockwise",
+                        action: onRefresh
+                    )
+                    .disabled(isRefreshing)
                     SmallGlassButton(title: "添加截图", systemImage: "plus", action: onAdd)
                 }
 

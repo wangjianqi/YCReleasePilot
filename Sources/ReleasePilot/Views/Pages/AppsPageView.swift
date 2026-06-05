@@ -68,6 +68,13 @@ struct AppsPageView: View {
                 .frame(width: 220, height: 36)
                 .background(Color.white.opacity(0.06))
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            SmallGlassButton(
+                title: viewModel.isRefreshingAppIcons ? "刷新中" : "刷新图标",
+                systemImage: viewModel.isRefreshingAppIcons ? "arrow.triangle.2.circlepath" : "arrow.clockwise"
+            ) {
+                viewModel.refreshAppIcons()
+            }
+            .disabled(viewModel.isRefreshingAppIcons || viewModel.isSyncingAppStoreConnect)
             SmallGlassButton(title: "添加 App", systemImage: "plus") {
                 if !membershipViewModel.status.isPaid && viewModel.apps.count >= 2 {
                     membershipViewModel.openPaywall()

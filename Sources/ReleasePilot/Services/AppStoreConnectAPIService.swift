@@ -8,6 +8,7 @@ struct AppStoreConnectAppSnapshot: Identifiable, Hashable, Codable {
     var bundleID: String
     var sku: String
     var primaryLocale: String
+    var latestVersionID: String?
     var latestVersion: String?
     var appStoreState: String?
     var platform: String?
@@ -99,6 +100,7 @@ final class AppStoreConnectAPIService {
                     bundleID: app.attributes.bundleId,
                     sku: app.attributes.sku,
                     primaryLocale: app.attributes.primaryLocale,
+                    latestVersionID: latestVersion?.id,
                     latestVersion: latestVersion?.attributes.versionString,
                     appStoreState: latestVersion?.attributes.appStoreState,
                     platform: latestVersion?.attributes.platform,
@@ -139,6 +141,7 @@ final class AppStoreConnectAPIService {
             }
 
             var updated = snapshot
+            updated.latestVersionID = latestVersion?.id ?? snapshot.latestVersionID
             updated.latestVersion = latestVersion?.attributes.versionString ?? snapshot.latestVersion
             updated.appStoreState = latestVersion?.attributes.appStoreState ?? snapshot.appStoreState
             updated.platform = latestVersion?.attributes.platform ?? snapshot.platform
@@ -154,6 +157,51 @@ final class AppStoreConnectAPIService {
         }
 
         return refreshed
+    }
+
+    func refreshMissingIcons(config: AppStoreConnectConfig, snapshots: [AppStoreConnectAppSnapshot]) async throws -> [AppStoreConnectAppSnapshot] {
+        let token = try makeJWT(config: config)
+        var refreshed: [AppStoreConnectAppSnapshot] = []
+
+        for snapshot in snapshots {
+            guard snapshot.iconImagePath.flatMap({ FileManager.default.fileExists(atPath: $0) }) != true else {
+                refreshed.append(snapshot)
+                continue
+            }
+
+            var updated = snapshot
+            updated.iconImagePath = await cachedIconPath(
+                buildID: snapshot.builds.first?.id,
+                bundleID: snapshot.bundleID,
+                token: token
+            )
+            refreshed.append(updated)
+        }
+
+        return refreshed
+    }
+
+    func refreshScreenshots(config: AppStoreConnectConfig, snapshot: AppStoreConnectAppSnapshot) async throws -> AppStoreConnectAppSnapshot {
+        let token = try makeJWT(config: config)
+        let versionID: String
+        var updated = snapshot
+
+        if let cachedVersionID = snapshot.latestVersionID {
+            versionID = cachedVersionID
+        } else {
+            let versions = try await latestVersions(appID: snapshot.id, token: token)
+            guard let latestVersion = versions.first else {
+                return snapshot
+            }
+            updated.latestVersionID = latestVersion.id
+            updated.latestVersion = latestVersion.attributes.versionString
+            updated.appStoreState = latestVersion.attributes.appStoreState
+            updated.platform = latestVersion.attributes.platform
+            versionID = latestVersion.id
+        }
+
+        updated.screenshots = (try? await screenshotSnapshots(appStoreVersionID: versionID, token: token)) ?? snapshot.screenshots
+        return updated
     }
 
     func testConnection(config: AppStoreConnectConfig) async -> AppStoreConnectConnectionStatus {
@@ -221,6 +269,19 @@ final class AppStoreConnectAPIService {
     private func cachedIconPath(from build: ASCResource<ASCBuildAttributes>?, bundleID: String, token: String) async -> String? {
         if let buildIconPath = await cachedBuildIconPath(from: build, token: token) {
             return buildIconPath
+        }
+        return await cachedPublicAppIconPath(bundleID: bundleID)
+    }
+
+    private func cachedIconPath(buildID: String?, bundleID: String, token: String) async -> String? {
+        if let buildID {
+            let build = ASCResource(
+                id: buildID,
+                attributes: ASCBuildAttributes(version: "", uploadedDate: nil, processingState: nil)
+            )
+            if let buildIconPath = await cachedBuildIconPath(from: build, token: token) {
+                return buildIconPath
+            }
         }
         return await cachedPublicAppIconPath(bundleID: bundleID)
     }
