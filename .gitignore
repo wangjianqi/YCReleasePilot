@@ -1,7 +1,56 @@
+# Build outputs
 .build/
 dist/
+
+# macOS
 .DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Xcode
 *.xcuserdata/
+xcuserdata/
 DerivedData/
 !*.xcodeproj/project.xcworkspace/contents.xcworkspacedata
 !*.xcodeproj/xcshareddata/xcschemes/*.xcscheme
+*.moved-aside
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.swiftpm/
+Package.resolved
+
+# XcodeGen
+*.xcodeproj/project.pbxproj
+
+# IDEs
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment & secrets
+.env
+.env.*
+*.env
+credentials.json
+*.p8
+*.p12
+
+# Local asset cache
+LocalAssetCache/
+
+# Logs
+*.log
