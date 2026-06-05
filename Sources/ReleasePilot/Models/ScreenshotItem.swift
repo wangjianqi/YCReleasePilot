@@ -1,6 +1,6 @@
 enum ScreenshotDevice: String, CaseIterable, Identifiable {
-    case iPhone69 = "iPhone 6.9\""
     case iPhone65 = "iPhone 6.5\""
+    case iPhone69 = "iPhone 6.9\""
     case iPadPro = "iPad Pro 12.9\""
     case iPad109 = "iPad 10.9\""
     case mac = "Mac"

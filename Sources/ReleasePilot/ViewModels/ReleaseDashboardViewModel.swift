@@ -8,7 +8,7 @@ final class ReleaseDashboardViewModel {
     var appOrder: [String] = MockData.releases.map(\.app.id)
     var selectedAppID: AppItem.ID
     var selectedPlatform: Platform = .iOS
-    var selectedScreenshotDevice: ScreenshotDevice = .iPhone69
+    var selectedScreenshotDevice: ScreenshotDevice = .iPhone65
     var currentPage: MainPage = .dashboard
     var focusedModule: ReleaseModule?
     var copilotMessages: [CopilotMessage]
@@ -238,7 +238,7 @@ final class ReleaseDashboardViewModel {
 
     func selectApp(_ app: AppItem) {
         selectedAppID = app.id
-        selectedScreenshotDevice = .iPhone69
+        selectedScreenshotDevice = .iPhone65
         focusedModule = nil
         didSubmit = false
         blockedSubmitMessage = nil
@@ -632,7 +632,7 @@ final class ReleaseDashboardViewModel {
 
     private func defaultScreenshotDevice(for platform: Platform) -> ScreenshotDevice {
         switch platform {
-        case .iOS: .iPhone69
+        case .iOS: .iPhone65
         case .iPadOS: .iPadPro
         case .macOS: .mac
         }
