@@ -162,10 +162,10 @@ struct SidebarView: View {
 
                 VStack(alignment: .leading, spacing: 1) {
                     Text(membershipViewModel.status.isPaid ? "\(membershipViewModel.status.title) Plan" : AppStrings.proPlan)
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(Theme.ColorToken.text)
                     Text(membershipViewModel.status.isPaid ? "AI Copilot Unlimited" : "升级后解锁完整 AI Copilot")
-                        .font(.system(size: 10, weight: .regular))
+                        .font(.system(size: 8, weight: .regular))
                         .foregroundStyle(Theme.ColorToken.muted)
                 }
 
@@ -173,7 +173,7 @@ struct SidebarView: View {
 
                 HStack(spacing: 3) {
                     Text(AppStrings.managePlan)
-                        .font(.system(size: 10, weight: .medium))
+                        .font(.system(size: 8, weight: .medium))
                         .foregroundStyle(Theme.ColorToken.blue)
                     Image(systemName: "chevron.right")
                         .font(.system(size: 8, weight: .semibold))
