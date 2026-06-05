@@ -54,6 +54,7 @@
 		80E7B799D3DBB62345321730 /* AppListItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1DA3565C02389ECEA23C564 /* AppListItemView.swift */; };
 		80F163C5C838EA2508CE4DDC /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF8CE163A09C02A0AD4A5ADB /* SettingsView.swift */; };
 		8319C8D67488DBEB11A60FBD /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EBD75B88CDF3BBAD9DD9CD /* Theme.swift */; };
+		847DDCB16D19915829F24BC1 /* WindowTitleBarDoubleClickInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3FEDDF41E0265EB9796EA10 /* WindowTitleBarDoubleClickInstaller.swift */; };
 		8480DCB81485CD80C6E7AF6F /* CopilotSessionHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B09ED4427F18B0A5FBD6245 /* CopilotSessionHistoryView.swift */; };
 		8574AAA5E87A9E563FB28A85 /* ReleaseFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4734B383428F5E8618F049B /* ReleaseFlowView.swift */; };
 		85FCAC51BE8D54C6E5A95CA7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E9B7BE923851AEA2CC902CB8 /* Assets.xcassets */; };
@@ -170,6 +171,7 @@
 		D94B583458E64B8D2329B72C /* VersionHistoryModalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VersionHistoryModalView.swift; sourceTree = "<group>"; };
 		DC299CE666C6730CFDF8E0F0 /* AppItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppItem.swift; sourceTree = "<group>"; };
 		E1D6DFC3ECB7C85F81EDCFE0 /* GeneralSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsView.swift; sourceTree = "<group>"; };
+		E3FEDDF41E0265EB9796EA10 /* WindowTitleBarDoubleClickInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowTitleBarDoubleClickInstaller.swift; sourceTree = "<group>"; };
 		E56D1097147F24FE6D3BC4C3 /* CopilotViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopilotViewModel.swift; sourceTree = "<group>"; };
 		E5CE07193CBA8DA99C17DFB5 /* ModalShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModalShell.swift; sourceTree = "<group>"; };
 		E6A2AA62D2190D18B98F1A2E /* AppDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDraft.swift; sourceTree = "<group>"; };
@@ -398,6 +400,7 @@
 			children = (
 				A2FFED50CF5A4E3C857AFBDA /* AppStrings.swift */,
 				C7EBD75B88CDF3BBAD9DD9CD /* Theme.swift */,
+				E3FEDDF41E0265EB9796EA10 /* WindowTitleBarDoubleClickInstaller.swift */,
 			);
 			path = Support;
 			sourceTree = "<group>";
@@ -563,6 +566,7 @@
 				C091E2E56FF7D7497EA97CF2 /* TodoCardView.swift in Sources */,
 				8816B211F1CD5DCD13A8AA9A /* UserSettings.swift in Sources */,
 				AD45EDA5F54FF624C50E7BE4 /* VersionHistoryModalView.swift in Sources */,
+				847DDCB16D19915829F24BC1 /* WindowTitleBarDoubleClickInstaller.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
