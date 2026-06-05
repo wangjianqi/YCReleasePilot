@@ -1,6 +1,6 @@
 enum AppStrings {
     static let appName = "ReleasePilot"
-    static let versionPill = "V4.0"
+    static let versionPill = "V0.4"
     static let navDashboard = "Dashboard"
     static let navApps = "Apps"
     static let navHistory = "History"
