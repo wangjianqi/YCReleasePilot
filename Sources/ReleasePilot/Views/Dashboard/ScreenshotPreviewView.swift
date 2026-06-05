@@ -121,7 +121,7 @@ private struct ScreenshotPhoneView: View {
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
                     .fill(Color.black)
 
-                if let path = item.localImagePath, let image = NSImage(contentsOfFile: path) {
+                if let image = LocalAssetCacheService.screenshot(for: item, width: 80, height: 184) {
                     Image(nsImage: image)
                         .resizable()
                         .scaledToFill()

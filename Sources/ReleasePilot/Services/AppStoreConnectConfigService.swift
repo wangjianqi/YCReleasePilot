@@ -3,11 +3,17 @@ import Foundation
 final class AppStoreConnectConfigService {
     private let defaults: UserDefaults
     private let apiService: AppStoreConnectAPIService
+    private let snapshotCacheService: AppStoreConnectSnapshotCacheService
     private let storageKey = "releasepilot.appStoreConnectConfig"
 
-    init(defaults: UserDefaults = .standard, apiService: AppStoreConnectAPIService = AppStoreConnectAPIService()) {
+    init(
+        defaults: UserDefaults = .standard,
+        apiService: AppStoreConnectAPIService = AppStoreConnectAPIService(),
+        snapshotCacheService: AppStoreConnectSnapshotCacheService = AppStoreConnectSnapshotCacheService()
+    ) {
         self.defaults = defaults
         self.apiService = apiService
+        self.snapshotCacheService = snapshotCacheService
     }
 
     func loadConfig() -> AppStoreConnectConfig {
@@ -28,6 +34,17 @@ final class AppStoreConnectConfigService {
     }
 
     func testConnection(_ config: AppStoreConnectConfig) async -> AppStoreConnectConnectionStatus {
-        await apiService.testConnection(config: config)
+        if snapshotCacheService.loadValidSnapshot(for: config) != nil {
+            return .connected
+        }
+        do {
+            let snapshots = try await apiService.listApps(config: config, limit: 1)
+            snapshotCacheService.save(snapshots, for: config)
+            return .connected
+        } catch AppStoreConnectAPIError.missingFields {
+            return .missingFields
+        } catch {
+            return .failed
+        }
     }
 }

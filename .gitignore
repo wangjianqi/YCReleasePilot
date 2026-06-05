@@ -3,3 +3,5 @@ dist/
 .DS_Store
 *.xcuserdata/
 DerivedData/
+!*.xcodeproj/project.xcworkspace/contents.xcworkspacedata
+!*.xcodeproj/xcshareddata/xcschemes/*.xcscheme

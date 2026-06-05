@@ -2,7 +2,7 @@ import CryptoKit
 import Foundation
 import SwiftUI
 
-struct AppStoreConnectAppSnapshot: Identifiable, Hashable {
+struct AppStoreConnectAppSnapshot: Identifiable, Hashable, Codable {
     let id: String
     var name: String
     var bundleID: String
@@ -14,7 +14,7 @@ struct AppStoreConnectAppSnapshot: Identifiable, Hashable {
     var builds: [AppStoreConnectBuildSnapshot]
 }
 
-struct AppStoreConnectBuildSnapshot: Identifiable, Hashable {
+struct AppStoreConnectBuildSnapshot: Identifiable, Hashable, Codable {
     let id: String
     var version: String
     var uploadedDate: String

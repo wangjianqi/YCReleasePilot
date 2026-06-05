@@ -37,6 +37,7 @@ final class ReleaseDashboardViewModel {
 
     private let appStoreConnectConfigService: AppStoreConnectConfigService
     private let appStoreConnectAPIService: AppStoreConnectAPIService
+    private let appStoreConnectSnapshotCacheService: AppStoreConnectSnapshotCacheService
 
     var releasePlanDraft = ReleasePlan(
         releaseMode: .manualAfterApproval,
@@ -49,10 +50,12 @@ final class ReleaseDashboardViewModel {
 
     init(
         appStoreConnectConfigService: AppStoreConnectConfigService = AppStoreConnectConfigService(),
-        appStoreConnectAPIService: AppStoreConnectAPIService = AppStoreConnectAPIService()
+        appStoreConnectAPIService: AppStoreConnectAPIService = AppStoreConnectAPIService(),
+        appStoreConnectSnapshotCacheService: AppStoreConnectSnapshotCacheService = AppStoreConnectSnapshotCacheService()
     ) {
         self.appStoreConnectConfigService = appStoreConnectConfigService
         self.appStoreConnectAPIService = appStoreConnectAPIService
+        self.appStoreConnectSnapshotCacheService = appStoreConnectSnapshotCacheService
         let first = MockData.releases[0]
         selectedAppID = first.app.id
         copilotMessages = MockData.initialCopilotMessages(for: first, platform: .iOS)
@@ -286,31 +289,23 @@ final class ReleaseDashboardViewModel {
         Task { @MainActor in
             do {
                 let config = appStoreConnectConfigService.loadConfig()
-                let snapshots = try await appStoreConnectAPIService.listApps(config: config, limit: 20)
-                let releases = snapshots.map { MockData.makeRelease(from: $0) }
-                guard !releases.isEmpty else {
-                    appStoreConnectSyncMessage = "App Store Connect 没有返回可见 App。"
-                    isSyncingAppStoreConnect = false
-                    showToast(appStoreConnectSyncMessage ?? "同步失败")
-                    return
+                if let cachedSnapshots = appStoreConnectSnapshotCacheService.loadValidSnapshot(for: config) {
+                    applyAppStoreConnectSnapshots(cachedSnapshots, config: config)
+                    appStoreConnectSyncMessage = "已使用本地缓存，避免重复请求 App Store Connect"
+                    showToast(appStoreConnectSyncMessage ?? "已使用本地缓存")
+                } else {
+                    let snapshots = try await appStoreConnectAPIService.listApps(config: config, limit: 20)
+                    guard !snapshots.isEmpty else {
+                        appStoreConnectSyncMessage = "App Store Connect 没有返回可见 App。"
+                        isSyncingAppStoreConnect = false
+                        showToast(appStoreConnectSyncMessage ?? "同步失败")
+                        return
+                    }
+                    appStoreConnectSnapshotCacheService.save(snapshots, for: config)
+                    applyAppStoreConnectSnapshots(snapshots, config: config)
+                    appStoreConnectSyncMessage = "已同步 \(snapshots.count) 个 App Store Connect App"
+                    showToast(appStoreConnectSyncMessage ?? "同步成功")
                 }
-                let firstRelease = releases[0]
-                let firstPlatform = defaultPlatform(from: snapshots[0].platform)
-                appReleases = Dictionary(uniqueKeysWithValues: releases.map { ($0.app.id, $0) })
-                appOrder = releases.map(\.app.id)
-                isUsingAppStoreConnectData = true
-                appStoreConnectAccountTitle = config.teamID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "ASC 已连接" : "Team \(config.teamID)"
-                appStoreConnectAccountSubtitle = config.issuerID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "App Store Connect" : "Issuer \(String(config.issuerID.prefix(8)))..."
-                selectedPlatform = firstPlatform
-                selectedScreenshotDevice = defaultScreenshotDevice(for: firstPlatform)
-                focusedModule = nil
-                didSubmit = false
-                blockedSubmitMessage = nil
-                releasePlanDraft = firstRelease.data(for: firstPlatform).releasePlan
-                copilotMessages = MockData.initialCopilotMessages(for: firstRelease, platform: firstPlatform)
-                selectedAppID = firstRelease.app.id
-                appStoreConnectSyncMessage = "已同步 \(releases.count) 个 App Store Connect App"
-                showToast(appStoreConnectSyncMessage ?? "同步成功")
             } catch {
                 let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
                 appStoreConnectSyncMessage = message
@@ -318,6 +313,28 @@ final class ReleaseDashboardViewModel {
             }
             isSyncingAppStoreConnect = false
         }
+    }
+
+    private func applyAppStoreConnectSnapshots(_ snapshots: [AppStoreConnectAppSnapshot], config: AppStoreConnectConfig) {
+        let releases = snapshots.map { MockData.makeRelease(from: $0) }
+        guard let firstRelease = releases.first, let firstSnapshot = snapshots.first else {
+            appStoreConnectSyncMessage = "App Store Connect 没有返回可见 App。"
+            return
+        }
+        let firstPlatform = defaultPlatform(from: firstSnapshot.platform)
+        appReleases = Dictionary(uniqueKeysWithValues: releases.map { ($0.app.id, $0) })
+        appOrder = releases.map(\.app.id)
+        isUsingAppStoreConnectData = true
+        appStoreConnectAccountTitle = config.teamID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "ASC 已连接" : "Team \(config.teamID)"
+        appStoreConnectAccountSubtitle = config.issuerID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "App Store Connect" : "Issuer \(String(config.issuerID.prefix(8)))..."
+        selectedPlatform = firstPlatform
+        selectedScreenshotDevice = defaultScreenshotDevice(for: firstPlatform)
+        focusedModule = nil
+        didSubmit = false
+        blockedSubmitMessage = nil
+        releasePlanDraft = firstRelease.data(for: firstPlatform).releasePlan
+        copilotMessages = MockData.initialCopilotMessages(for: firstRelease, platform: firstPlatform)
+        selectedAppID = firstRelease.app.id
     }
 
     func handleTodo(_ todo: TodoItem) {
@@ -375,6 +392,13 @@ final class ReleaseDashboardViewModel {
 
     func addScreenshot() {
         guard let url = chooseImageURL() else { return }
+        let cachedURL: URL
+        do {
+            cachedURL = try LocalAssetCacheService.cacheImportedImage(from: url, namespace: "\(selectedApp.id)-\(selectedPlatform.id)-\(selectedScreenshotDevice.id)")
+        } catch {
+            showToast("截图缓存失败：\(error.localizedDescription)")
+            return
+        }
         mutateScreenshots { items in
             let nextSlot = (items.map(\.slot).max() ?? 0) + 1
             items.append(
@@ -383,10 +407,10 @@ final class ReleaseDashboardViewModel {
                     device: selectedScreenshotDevice,
                     slot: nextSlot,
                     title: url.deletingPathExtension().lastPathComponent,
-                    subtitle: "本地图片",
+                    subtitle: "本地缓存",
                     hasWarning: false,
                     styleIndex: nextSlot,
-                    localImagePath: url.path
+                    localImagePath: cachedURL.path
                 )
             )
         }
@@ -404,14 +428,21 @@ final class ReleaseDashboardViewModel {
 
     func replaceScreenshot(_ screenshot: ScreenshotItem) {
         guard let url = chooseImageURL() else { return }
+        let cachedURL: URL
+        do {
+            cachedURL = try LocalAssetCacheService.cacheImportedImage(from: url, namespace: screenshot.id)
+        } catch {
+            showToast("截图缓存失败：\(error.localizedDescription)")
+            return
+        }
         mutateScreenshots { items in
             guard let index = items.firstIndex(where: { $0.id == screenshot.id }) else { return }
             items[index].title = url.deletingPathExtension().lastPathComponent
-            items[index].subtitle = "已替换"
+            items[index].subtitle = "已缓存"
             items[index].hasWarning = false
             items[index].isPlaceholder = false
             items[index].styleIndex += 1
-            items[index].localImagePath = url.path
+            items[index].localImagePath = cachedURL.path
         }
         focus(.screenshots)
         showToast("截图已替换")

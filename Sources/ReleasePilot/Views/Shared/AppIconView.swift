@@ -6,10 +6,16 @@ struct AppIconView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(colors: app.iconGradient, startPoint: .topLeading, endPoint: .bottomTrailing)
-            Image(systemName: app.iconSymbol)
-                .font(.system(size: size * 0.45, weight: .semibold))
-                .foregroundStyle(.white)
+            if let image = LocalAssetCacheService.appIcon(for: app, size: size) {
+                Image(nsImage: image)
+                    .resizable()
+                    .scaledToFill()
+            } else {
+                LinearGradient(colors: app.iconGradient, startPoint: .topLeading, endPoint: .bottomTrailing)
+                Image(systemName: app.iconSymbol)
+                    .font(.system(size: size * 0.45, weight: .semibold))
+                    .foregroundStyle(.white)
+            }
         }
         .frame(width: size, height: size)
         .clipShape(RoundedRectangle(cornerRadius: size * 0.28, style: .continuous))
