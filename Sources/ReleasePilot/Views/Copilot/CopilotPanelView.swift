@@ -138,7 +138,7 @@ struct CopilotPanelView: View {
     }
 
     private var footer: some View {
-        Label(viewModel.isUsingAppStoreConnectData ? "当前发布上下文来自 App Store Connect，同步数据会用于建议和快捷操作" : "当前阶段使用本地 Mock 回复，后续可替换为真实 Provider 请求", systemImage: "info.circle")
+        Label(viewModel.isUsingAppStoreConnectData ? "当前发布上下文来自 App Store Connect，同步数据会用于 AI 建议和快捷操作" : "当前使用已配置 Provider 发起真实 AI 请求；建议列表仍使用本地规则生成", systemImage: "info.circle")
             .font(.caption2)
             .foregroundStyle(Theme.ColorToken.muted)
             .frame(maxWidth: .infinity, alignment: .leading)

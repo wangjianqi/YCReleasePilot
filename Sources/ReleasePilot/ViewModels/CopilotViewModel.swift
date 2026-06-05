@@ -20,6 +20,7 @@ final class CopilotViewModel {
     var selectedModel: String = ""
     var selectedSessionID: UUID?
     var showingSessionHistory = false
+    var isSending = false
 
     private let providerViewModel: AIProvidersViewModel
     private let membershipViewModel: MembershipViewModel
@@ -167,6 +168,7 @@ final class CopilotViewModel {
     }
 
     func sendPrompt(_ prompt: String, appName: String, platform: Platform) {
+        guard !isSending else { return }
         guard hasConfiguredProvider else {
             toastService.show("请先配置 AI Provider")
             return
@@ -176,9 +178,11 @@ final class CopilotViewModel {
             return
         }
         messages.append(CopilotMessage(role: .user, body: prompt))
-        messages.append(mockService.response(for: prompt, appName: appName, platform: platform))
-        membershipViewModel.service.recordCopilotMessage()
         persistCurrentSession()
+        isSending = true
+        Task {
+            await sendPromptToProvider(prompt, appName: appName, platform: platform)
+        }
     }
 
     func copyMessage(_ message: CopilotMessage) {
@@ -234,5 +238,37 @@ final class CopilotViewModel {
             return "New Chat"
         }
         return firstUserMessage.count > 18 ? "\(firstUserMessage.prefix(18))..." : firstUserMessage
+    }
+
+    private func sendPromptToProvider(_ prompt: String, appName: String, platform: Platform) async {
+        defer {
+            isSending = false
+            persistCurrentSession()
+        }
+
+        guard let provider = selectedProvider else {
+            messages.append(CopilotMessage(role: .assistant, title: "Provider 未配置", body: "请先在 Settings 中配置可用的 AI Provider。"))
+            return
+        }
+
+        do {
+            let reply = try await providerViewModel.sendChat(
+                prompt: prompt,
+                history: messages.dropLast(),
+                provider: provider,
+                model: selectedModel,
+                appName: appName,
+                platform: platform
+            )
+            messages.append(reply)
+            membershipViewModel.service.recordCopilotMessage()
+        } catch {
+            messages.append(CopilotMessage(
+                role: .assistant,
+                title: "真实 AI 请求失败",
+                body: "\(error.localizedDescription)\n\n请检查 Provider 的 Base URL、模型名和 `XIAO_API_KEY` 环境变量。"
+            ))
+            toastService.show("AI 请求失败")
+        }
     }
 }

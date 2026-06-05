@@ -150,13 +150,14 @@ struct CopilotChatView: View {
             Button {
                 copilotViewModel.sendCurrentInput(appName: dashboardViewModel.selectedApp.name, platform: dashboardViewModel.selectedPlatform)
             } label: {
-                Image(systemName: "paperplane.fill")
+                Image(systemName: copilotViewModel.isSending ? "hourglass" : "paperplane.fill")
                     .foregroundStyle(.white)
                     .frame(width: 38, height: 38)
                     .background(LinearGradient(colors: [Theme.ColorToken.blue, Theme.ColorToken.purple], startPoint: .topLeading, endPoint: .bottomTrailing))
                     .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
             }
             .buttonStyle(.plain)
+            .disabled(copilotViewModel.isSending)
         }
         .padding(10)
         .background(Color.white.opacity(0.055))

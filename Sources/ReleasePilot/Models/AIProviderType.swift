@@ -1,6 +1,7 @@
 import Foundation
 
 enum AIProviderType: String, CaseIterable, Codable, Identifiable {
+    case xiaomi
     case openAI
     case anthropic
     case gemini
@@ -13,6 +14,7 @@ enum AIProviderType: String, CaseIterable, Codable, Identifiable {
 
     var name: String {
         switch self {
+        case .xiaomi: "Xiaomi MiMo"
         case .openAI: "OpenAI"
         case .anthropic: "Anthropic Claude"
         case .gemini: "Gemini"
@@ -25,6 +27,7 @@ enum AIProviderType: String, CaseIterable, Codable, Identifiable {
 
     var symbol: String {
         switch self {
+        case .xiaomi: "bolt.circle.fill"
         case .openAI: "sparkles"
         case .anthropic: "brain.head.profile"
         case .gemini: "diamond.fill"
@@ -37,6 +40,7 @@ enum AIProviderType: String, CaseIterable, Codable, Identifiable {
 
     var defaultBaseURL: String {
         switch self {
+        case .xiaomi: "https://token-plan-sgp.xiaomimimo.com/v1"
         case .openAI: "https://api.openai.com/v1"
         case .anthropic: "https://api.anthropic.com"
         case .gemini: "https://generativelanguage.googleapis.com/v1beta"
@@ -49,6 +53,7 @@ enum AIProviderType: String, CaseIterable, Codable, Identifiable {
 
     var defaultModel: String {
         switch self {
+        case .xiaomi: "mimo-v2.5-pro"
         case .openAI: "gpt-4o"
         case .anthropic: "claude-3-5-sonnet-latest"
         case .gemini: "gemini-1.5-pro"

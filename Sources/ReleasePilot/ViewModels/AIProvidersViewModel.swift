@@ -15,7 +15,7 @@ struct AIProviderDraft: Identifiable {
     var showsAPIKey: Bool
 
     init(provider: AIProvider? = nil, apiKey: String = "") {
-        let type = provider?.type ?? .openAI
+        let type = provider?.type ?? .xiaomi
         id = UUID()
         providerID = provider?.id
         self.type = type
@@ -64,7 +64,7 @@ final class AIProvidersViewModel {
     }
 
     func maskedAPIKey(for provider: AIProvider) -> String {
-        service.maskedAPIKey(for: provider.id)
+        KeychainService.maskedKey(service.resolvedAPIKey(for: provider))
     }
 
     func addProvider() {
@@ -163,6 +163,24 @@ final class AIProvidersViewModel {
             persist()
             toastService.show(status == .connected ? "连接成功" : status.title)
         }
+    }
+
+    func sendChat(
+        prompt: String,
+        history: [CopilotMessage],
+        provider: AIProvider,
+        model: String,
+        appName: String,
+        platform: Platform
+    ) async throws -> CopilotMessage {
+        try await service.sendChat(
+            prompt: prompt,
+            history: history,
+            provider: provider,
+            model: model,
+            appName: appName,
+            platform: platform
+        )
     }
 
     func clearAllProviders() {
