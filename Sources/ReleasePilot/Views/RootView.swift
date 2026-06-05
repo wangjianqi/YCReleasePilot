@@ -1,4 +1,3 @@
-import AppKit
 import SwiftUI
 
 struct RootView: View {
@@ -120,10 +119,10 @@ struct RootView: View {
                 }
             }
 
-            titleBarDoubleClickArea
         }
         .foregroundStyle(Theme.ColorToken.text)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(WindowTitleBarDoubleClickInstaller())
         .sheet(isPresented: Binding(
             get: { membershipViewModel.showingPaywall },
             set: { membershipViewModel.showingPaywall = $0 }
@@ -174,27 +173,6 @@ struct RootView: View {
             RadialGradient(colors: [Theme.ColorToken.purple.opacity(0.14), .clear], center: .bottomTrailing, startRadius: 40, endRadius: 600)
         }
         .ignoresSafeArea()
-    }
-
-    private var titleBarDoubleClickArea: some View {
-        HStack(spacing: 0) {
-            Color.clear
-                .frame(width: 78)
-                .allowsHitTesting(false)
-
-            Color.clear
-                .contentShape(Rectangle())
-                .onTapGesture(count: 2) {
-                    toggleWindowFullScreen()
-                }
-        }
-        .frame(height: 34)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-    }
-
-    private func toggleWindowFullScreen() {
-        guard let window = NSApp.keyWindow ?? NSApp.mainWindow else { return }
-        window.toggleFullScreen(nil)
     }
 
     @ViewBuilder
