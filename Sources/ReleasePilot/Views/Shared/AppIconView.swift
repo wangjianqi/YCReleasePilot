@@ -6,7 +6,11 @@ struct AppIconView: View {
 
     var body: some View {
         ZStack {
-            if let image = LocalAssetCacheService.appIcon(for: app, size: size) {
+            if let path = app.iconImagePath, let image = NSImage(contentsOfFile: path) {
+                Image(nsImage: image)
+                    .resizable()
+                    .scaledToFill()
+            } else if let image = LocalAssetCacheService.appIcon(for: app, size: size) {
                 Image(nsImage: image)
                     .resizable()
                     .scaledToFill()

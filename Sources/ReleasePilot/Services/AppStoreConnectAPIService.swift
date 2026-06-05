@@ -12,6 +12,8 @@ struct AppStoreConnectAppSnapshot: Identifiable, Hashable, Codable {
     var appStoreState: String?
     var platform: String?
     var builds: [AppStoreConnectBuildSnapshot]
+    var iconImagePath: String?
+    var screenshots: [AppStoreConnectScreenshotSnapshot]
 }
 
 struct AppStoreConnectBuildSnapshot: Identifiable, Hashable, Codable {
@@ -19,6 +21,17 @@ struct AppStoreConnectBuildSnapshot: Identifiable, Hashable, Codable {
     var version: String
     var uploadedDate: String
     var processingState: String
+}
+
+struct AppStoreConnectScreenshotSnapshot: Identifiable, Hashable, Codable {
+    let id: String
+    var displayType: String
+    var locale: String
+    var fileName: String
+    var width: Int?
+    var height: Int?
+    var imageTemplateURL: String?
+    var cachedImagePath: String?
 }
 
 enum AppStoreConnectAPIError: LocalizedError {
@@ -74,8 +87,11 @@ final class AppStoreConnectAPIService {
         for app in response.data {
             async let versions = latestVersions(appID: app.id, token: token)
             async let builds = latestBuilds(appID: app.id, token: token)
-            let latestVersion = try? await versions.first
+            let versionResources = (try? await versions) ?? []
+            let latestVersion = versionResources.first
             let latestBuilds = (try? await builds) ?? []
+            async let iconPath = cachedBuildIconPath(from: latestBuilds.first, token: token)
+            async let screenshots = cachedScreenshotSnapshots(from: latestVersion, token: token)
             snapshots.append(
                 AppStoreConnectAppSnapshot(
                     id: app.id,
@@ -93,7 +109,9 @@ final class AppStoreConnectAPIService {
                             uploadedDate: $0.attributes.uploadedDate ?? "",
                             processingState: $0.attributes.processingState ?? "Unknown"
                         )
-                    }
+                    },
+                    iconImagePath: await iconPath,
+                    screenshots: await screenshots
                 )
             )
         }
@@ -134,6 +152,122 @@ final class AppStoreConnectAPIService {
             token: token
         )
         return response.data
+    }
+
+    private func cachedBuildIconPath(from build: ASCResource<ASCBuildAttributes>?, token: String) async -> String? {
+        guard let build else { return nil }
+        do {
+            let response: ASCListResponse<ASCBuildIconAttributes> = try await request(
+                path: "/builds/\(build.id)/icons",
+                queryItems: [
+                    URLQueryItem(name: "fields[buildIcons]", value: "iconAsset,iconType,name,masked")
+                ],
+                token: token
+            )
+            guard let icon = response.data.first(where: { $0.attributes.iconType == "APP_STORE" }) ?? response.data.first,
+                  let imageURL = resolvedImageURL(from: icon.attributes.iconAsset, preferredWidth: 256)
+            else {
+                return nil
+            }
+            let cachedURL = try await LocalAssetCacheService.cacheRemoteImage(
+                from: imageURL,
+                namespace: "asc-icon-\(build.id)-\(icon.id)",
+                session: session
+            )
+            return cachedURL.path
+        } catch {
+            return nil
+        }
+    }
+
+    private func cachedScreenshotSnapshots(from version: ASCResource<ASCAppStoreVersionAttributes>?, token: String) async -> [AppStoreConnectScreenshotSnapshot] {
+        guard let version else { return [] }
+        return (try? await screenshotSnapshots(appStoreVersionID: version.id, token: token)) ?? []
+    }
+
+    private func screenshotSnapshots(appStoreVersionID: String, token: String) async throws -> [AppStoreConnectScreenshotSnapshot] {
+        let localizations: ASCListResponse<ASCAppStoreVersionLocalizationAttributes> = try await request(
+            path: "/appStoreVersions/\(appStoreVersionID)/appStoreVersionLocalizations",
+            queryItems: [
+                URLQueryItem(name: "fields[appStoreVersionLocalizations]", value: "locale")
+            ],
+            token: token
+        )
+
+        var snapshots: [AppStoreConnectScreenshotSnapshot] = []
+        for localization in localizations.data {
+            let sets: ASCListResponse<ASCAppScreenshotSetAttributes> = try await request(
+                path: "/appStoreVersionLocalizations/\(localization.id)/appScreenshotSets",
+                queryItems: [
+                    URLQueryItem(name: "fields[appScreenshotSets]", value: "screenshotDisplayType")
+                ],
+                token: token
+            )
+            for set in sets.data {
+                let screenshots: ASCListResponse<ASCAppScreenshotAttributes> = try await request(
+                    path: "/appScreenshotSets/\(set.id)/appScreenshots",
+                    queryItems: [
+                        URLQueryItem(name: "fields[appScreenshots]", value: "fileName,imageAsset,assetDeliveryState")
+                    ],
+                    token: token
+                )
+                for (index, screenshot) in screenshots.data.enumerated() {
+                    let imageAsset = screenshot.attributes.imageAsset
+                    let imageURL = resolvedImageURL(from: imageAsset, preferredWidth: preferredScreenshotWidth(for: set.attributes.screenshotDisplayType))
+                    let cachedImagePath: String?
+                    if let imageURL {
+                        cachedImagePath = try? await LocalAssetCacheService.cacheRemoteImage(
+                            from: imageURL,
+                            namespace: "asc-screenshot-\(screenshot.id)-\(index)",
+                            session: session
+                        ).path
+                    } else {
+                        cachedImagePath = nil
+                    }
+                    snapshots.append(
+                        AppStoreConnectScreenshotSnapshot(
+                            id: screenshot.id,
+                            displayType: set.attributes.screenshotDisplayType,
+                            locale: localization.attributes.locale,
+                            fileName: screenshot.attributes.fileName,
+                            width: imageAsset?.width,
+                            height: imageAsset?.height,
+                            imageTemplateURL: imageAsset?.templateURL,
+                            cachedImagePath: cachedImagePath
+                        )
+                    )
+                }
+            }
+        }
+        return snapshots
+    }
+
+    private func resolvedImageURL(from imageAsset: ASCImageAsset?, preferredWidth: Int) -> URL? {
+        guard let imageAsset else { return nil }
+        let width = imageAsset.width ?? preferredWidth
+        let height = imageAsset.height ?? preferredWidth
+        let replacements = [
+            "{w}": "\(width)",
+            "{h}": "\(height)",
+            "{f}": "png",
+            "{scale}": "1",
+            "{quality}": "90"
+        ]
+        var template = imageAsset.templateURL
+        for (placeholder, value) in replacements {
+            template = template.replacingOccurrences(of: placeholder, with: value)
+        }
+        return URL(string: template)
+    }
+
+    private func preferredScreenshotWidth(for displayType: String) -> Int {
+        if displayType.contains("IPAD") {
+            return 1024
+        }
+        if displayType.contains("DESKTOP") || displayType.contains("MAC") {
+            return 1280
+        }
+        return 430
     }
 
     private func request<Response: Decodable>(path: String, queryItems: [URLQueryItem], token: String) async throws -> Response {
@@ -247,6 +381,38 @@ private struct ASCBuildAttributes: Decodable {
     let version: String
     let uploadedDate: String?
     let processingState: String?
+}
+
+private struct ASCBuildIconAttributes: Decodable {
+    let iconAsset: ASCImageAsset?
+    let iconType: String
+    let name: String?
+    let masked: Bool?
+}
+
+private struct ASCAppStoreVersionLocalizationAttributes: Decodable {
+    let locale: String
+}
+
+private struct ASCAppScreenshotSetAttributes: Decodable {
+    let screenshotDisplayType: String
+}
+
+private struct ASCAppScreenshotAttributes: Decodable {
+    let fileName: String
+    let imageAsset: ASCImageAsset?
+}
+
+private struct ASCImageAsset: Decodable {
+    let width: Int?
+    let height: Int?
+    let templateURL: String
+
+    enum CodingKeys: String, CodingKey {
+        case width
+        case height
+        case templateURL = "templateUrl"
+    }
 }
 
 private struct ASCErrorResponse: Decodable {

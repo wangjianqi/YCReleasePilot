@@ -7,6 +7,7 @@ struct AppItem: Identifiable, Hashable {
     let buildNumber: Int
     let iconSymbol: String
     let iconGradient: [Color]
+    var iconImagePath: String? = nil
     let readiness: Int
     let passRate: Int
     let reviewHours: String

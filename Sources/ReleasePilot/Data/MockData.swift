@@ -128,6 +128,7 @@ enum MockData {
             buildNumber: buildNumber,
             iconSymbol: iconSymbol(for: snapshot.bundleID),
             iconGradient: iconGradient(for: snapshot.id),
+            iconImagePath: snapshot.iconImagePath,
             readiness: readiness,
             passRate: readiness >= 90 ? 88 : 74,
             reviewHours: "24 – 48",
@@ -147,7 +148,7 @@ enum MockData {
                         reviewNote: ""
                     ),
                     builds: builds(from: snapshot, app: app, platform: platform),
-                    screenshotsByDevice: screenshots(appID: snapshot.id, platform: platform, incomplete: incomplete),
+                    screenshotsByDevice: screenshots(from: snapshot, platform: platform, incomplete: incomplete),
                     suggestions: suggestions(name: snapshot.name, incomplete: incomplete),
                     releaseChecks: ReleaseModule.allCases.map { module in
                         ReleaseCheck(id: module, isComplete: !incomplete.contains(module) && module != .release, warning: warning(for: module))
@@ -336,10 +337,17 @@ enum MockData {
     }
 
     private static func screenshots(appID: String, platform: Platform, incomplete: Set<ReleaseModule>) -> [ScreenshotDevice: [ScreenshotItem]] {
-        Dictionary(uniqueKeysWithValues: ScreenshotDevice.allCases.map { device in
+        var result: [ScreenshotDevice: [ScreenshotItem]] = [:]
+        for device in ScreenshotDevice.allCases {
             let count = screenshotCount(platform: platform, device: device, incomplete: incomplete)
-            let items = count > 0 ? (1...count).map { slot in
-                ScreenshotItem(
+            guard count > 0 else {
+                result[device] = []
+                continue
+            }
+            var items: [ScreenshotItem] = []
+            items.reserveCapacity(count)
+            for slot in 1...count {
+                items.append(ScreenshotItem(
                     id: "\(appID)-\(platform.id)-\(device.id)-\(slot)",
                     device: device,
                     slot: slot,
@@ -347,10 +355,49 @@ enum MockData {
                     subtitle: slotSubtitle(slot),
                     hasWarning: incomplete.contains(.screenshots) && slot == min(3, max(1, count)),
                     styleIndex: slot
+                ))
+            }
+            result[device] = items
+        }
+        return result
+    }
+
+    private static func screenshots(from snapshot: AppStoreConnectAppSnapshot, platform: Platform, incomplete: Set<ReleaseModule>) -> [ScreenshotDevice: [ScreenshotItem]] {
+        var grouped: [ScreenshotDevice: [ScreenshotItem]] = [:]
+        let primaryLocale = snapshot.primaryLocale
+        let hasPrimaryLocaleScreenshots = snapshot.screenshots.contains { $0.locale == primaryLocale }
+        let localizedScreenshots = snapshot.screenshots.filter { screenshot in
+            hasPrimaryLocaleScreenshots ? screenshot.locale == primaryLocale : true
+        }
+
+        for screenshot in localizedScreenshots {
+            guard let device = screenshotDevice(for: screenshot.displayType) else { continue }
+            var items = grouped[device] ?? []
+            let slot = items.count + 1
+            items.append(
+                ScreenshotItem(
+                    id: screenshot.id,
+                    device: device,
+                    slot: slot,
+                    title: screenshot.fileName,
+                    subtitle: readableScreenshotDisplayType(screenshot.displayType),
+                    hasWarning: screenshot.cachedImagePath == nil,
+                    isPlaceholder: screenshot.cachedImagePath == nil,
+                    styleIndex: slot,
+                    localImagePath: screenshot.cachedImagePath
                 )
-            } : []
-            return (device, items)
-        })
+            )
+            grouped[device] = items
+        }
+
+        if grouped.values.flatMap({ $0 }).isEmpty {
+            return screenshots(appID: snapshot.id, platform: platform, incomplete: incomplete)
+        }
+
+        for device in ScreenshotDevice.allCases where grouped[device] == nil {
+            grouped[device] = []
+        }
+        return grouped
     }
 
     private static func screenshotCount(platform: Platform, device: ScreenshotDevice, incomplete: Set<ReleaseModule>) -> Int {
@@ -364,6 +411,30 @@ enum MockData {
         case (_, .iPhone69), (_, .iPhone65): return 5
         default: return 3
         }
+    }
+
+    private static func screenshotDevice(for displayType: String) -> ScreenshotDevice? {
+        let value = displayType.uppercased()
+        if value.contains("IPHONE_69") || value.contains("6_9") || value.contains("67") || value.contains("6_7") {
+            return .iPhone69
+        }
+        if value.contains("IPHONE") {
+            return .iPhone65
+        }
+        if value.contains("IPAD_PRO") || value.contains("129") || value.contains("12_9") {
+            return .iPadPro
+        }
+        if value.contains("IPAD") {
+            return .iPad109
+        }
+        if value.contains("DESKTOP") || value.contains("MAC") {
+            return .mac
+        }
+        return nil
+    }
+
+    private static func readableScreenshotDisplayType(_ displayType: String) -> String {
+        screenshotDevice(for: displayType)?.rawValue ?? displayType.replacingOccurrences(of: "_", with: " ")
     }
 
     private static func readableState(_ value: String) -> String {

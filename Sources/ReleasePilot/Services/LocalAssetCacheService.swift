@@ -47,6 +47,22 @@ enum LocalAssetCacheService {
         return fileURL
     }
 
+    static func cacheRemoteImage(from sourceURL: URL, namespace: String, session: URLSession = .shared) async throws -> URL {
+        let (data, response) = try await session.data(from: sourceURL)
+        if let httpResponse = response as? HTTPURLResponse, !(200..<300).contains(httpResponse.statusCode) {
+            throw AppStoreConnectAPIError.requestFailed(statusCode: httpResponse.statusCode, message: "图片资源下载失败")
+        }
+        let digest = SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+        let ext = imageExtension(from: response.url ?? sourceURL, data: data)
+        let targetDirectory = cacheDirectory().appendingPathComponent("remote", isDirectory: true)
+        try FileManager.default.createDirectory(at: targetDirectory, withIntermediateDirectories: true)
+        let fileURL = targetDirectory.appendingPathComponent("\(safeFileName(namespace))-\(digest.prefix(16)).\(ext)")
+        if !FileManager.default.fileExists(atPath: fileURL.path) {
+            try data.write(to: fileURL, options: [.atomic])
+        }
+        return fileURL
+    }
+
     private static func cacheDirectory() -> URL {
         let base = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first
             ?? URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
@@ -190,6 +206,20 @@ enum LocalAssetCacheService {
                     partialResult.append(character)
                 }
             }
+    }
+
+    private static func imageExtension(from url: URL, data: Data) -> String {
+        let pathExtension = url.pathExtension.lowercased()
+        if ["png", "jpg", "jpeg", "heic", "tiff"].contains(pathExtension) {
+            return pathExtension == "jpeg" ? "jpg" : pathExtension
+        }
+        if data.starts(with: [0x89, 0x50, 0x4E, 0x47]) {
+            return "png"
+        }
+        if data.starts(with: [0xFF, 0xD8]) {
+            return "jpg"
+        }
+        return "png"
     }
 
     private static func iconColors(for id: String) -> (NSColor, NSColor) {
