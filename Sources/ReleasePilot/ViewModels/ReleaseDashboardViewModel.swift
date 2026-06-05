@@ -504,6 +504,90 @@ final class ReleaseDashboardViewModel {
         copilotMessages.append(CopilotMessage(role: .assistant, title: title, body: "这是 \(selectedApp.name) \(selectedPlatform.rawValue) 的本地 Mock 分析结果。后续可以接入 AI 网关，把结果写回 metadata 或检查项。"))
     }
 
+    func copilotPrompt(for quickActionTitle: String) -> String {
+        let metadata = currentPlatformData.metadata
+        let currentBuild = currentBuild
+        let warningText = blockingWarnings.isEmpty ? "无阻塞项" : blockingWarnings.joined(separator: "；")
+        let suggestionText = suggestions.isEmpty ? "无本地建议" : suggestions.map { "\($0.title)：\($0.impact)" }.joined(separator: "；")
+        let reviewNote = metadata.reviewNote.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "未填写" : metadata.reviewNote
+        let baseContext = """
+        你正在帮助优化 App Store 发布资料。请直接基于下面已有上下文给出结果，不要反问我已有字段是什么；如果信息不足，请基于当前字段做合理假设并明确标注假设。
+
+        App：\(selectedApp.name)
+        平台：\(selectedPlatform.rawValue)
+        版本：\(selectedApp.version)
+        构建：\(currentBuild?.buildNumber ?? "\(selectedApp.buildNumber)")
+        当前副标题：\(metadata.subtitle)
+        当前关键词：\(metadata.keywords.joined(separator: ", "))
+        当前描述：\(metadata.description)
+        当前更新说明：\(metadata.releaseNotes)
+        当前审核备注：\(reviewNote)
+        当前阻塞项：\(warningText)
+        本地建议：\(suggestionText)
+        """
+
+        switch quickActionTitle {
+        case let title where title.contains("副标题"):
+            return """
+            \(baseContext)
+
+            任务：优化 App Store 副标题。
+            要求：
+            - 直接给出 5 个英文副标题候选，每个不超过 30 个字符。
+            - 每个候选后说明它强化的卖点。
+            - 保留与当前 App 定位最相关的关键词，避免泛泛的 AI、app、tool。
+            - 最后推荐 1 个首选版本，并说明原因。
+            """
+        case let title where title.contains("关键词"):
+            return """
+            \(baseContext)
+
+            任务：优化 App Store 关键词。
+            要求：
+            - 直接给出去重后的英文关键词列表。
+            - 控制在 App Store 关键词 100 字符以内。
+            - 标出删除了哪些低价值或重复词，以及新增了哪些高意图词。
+            """
+        case let title where title.contains("审核备注"):
+            return """
+            \(baseContext)
+
+            任务：生成审核备注。
+            要求：
+            - 直接输出一版可粘贴到 App Store Connect 的中文审核备注。
+            - 覆盖本次更新、权限/隐私边界和需要审核员关注的说明。
+            - 语气专业简洁，不要写成营销文案。
+            """
+        case let title where title.contains("翻译"):
+            return """
+            \(baseContext)
+
+            任务：翻译并润色新增内容。
+            要求：
+            - 将当前更新说明翻译成自然的英文 App Store release notes。
+            - 给出正式版和更简短版各一份。
+            - 不要询问原文，直接使用“当前更新说明”。
+            """
+        case let title where title.contains("风险"):
+            return """
+            \(baseContext)
+
+            任务：分析审核风险。
+            要求：
+            - 直接列出当前最可能影响提交或审核的风险。
+            - 按高/中/低分级，并给出对应修复动作。
+            - 优先关注截图、审核备注、隐私描述、元数据一致性和构建状态。
+            """
+        default:
+            return """
+            \(baseContext)
+
+            任务：\(quickActionTitle)。
+            要求：直接基于已有上下文给出可执行结果，不要先向我索要当前副标题、关键词、描述或审核备注。
+            """
+        }
+    }
+
     func applyReviewNote() {
         generateReviewNote()
     }

@@ -125,7 +125,12 @@ struct CopilotChatView: View {
                 membershipViewModel.openPaywall()
                 return
             }
-            copilotViewModel.sendPrompt(title, appName: dashboardViewModel.selectedApp.name, platform: dashboardViewModel.selectedPlatform)
+            copilotViewModel.sendPrompt(
+                dashboardViewModel.copilotPrompt(for: title),
+                displayBody: title,
+                appName: dashboardViewModel.selectedApp.name,
+                platform: dashboardViewModel.selectedPlatform
+            )
         }
     }
 

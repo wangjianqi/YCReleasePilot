@@ -167,7 +167,7 @@ final class CopilotViewModel {
         input = ""
     }
 
-    func sendPrompt(_ prompt: String, appName: String, platform: Platform) {
+    func sendPrompt(_ prompt: String, displayBody: String? = nil, appName: String, platform: Platform) {
         guard !isSending else { return }
         guard hasConfiguredProvider else {
             toastService.show("请先配置 AI Provider")
@@ -177,7 +177,7 @@ final class CopilotViewModel {
             membershipViewModel.openPaywall()
             return
         }
-        messages.append(CopilotMessage(role: .user, body: prompt))
+        messages.append(CopilotMessage(role: .user, body: displayBody ?? prompt))
         persistCurrentSession()
         isSending = true
         Task {
