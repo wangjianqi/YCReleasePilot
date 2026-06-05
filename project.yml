@@ -12,7 +12,7 @@ settings:
 packages:
   LLMStream:
     url: https://github.com/synth-inc/LLMStream
-    branch: main
+    revision: 57c2887ee63a25fbf10983b6b2be480b717e432a
   SwiftyChat:
     url: https://github.com/EnesKaraosman/SwiftyChat.git
     from: 4.1.1

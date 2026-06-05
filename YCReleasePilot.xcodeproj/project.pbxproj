@@ -815,8 +815,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/synth-inc/LLMStream";
 			requirement = {
-				branch = main;
-				kind = branch;
+				kind = revision;
+				revision = 57c2887ee63a25fbf10983b6b2be480b717e432a;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
