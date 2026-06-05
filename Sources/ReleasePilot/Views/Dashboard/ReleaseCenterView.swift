@@ -75,7 +75,7 @@ struct ReleaseCenterView: View {
 
     private var metrics: some View {
         GlassCard(cornerRadius: 20, padding: 0) {
-            HStack(spacing: 0) {
+            HStack(alignment: .top, spacing: 0) {
                 MetricCardView(title: AppStrings.readiness) {
                     CircularProgressView(percent: viewModel.displayedReadiness)
                         .frame(maxWidth: .infinity)
