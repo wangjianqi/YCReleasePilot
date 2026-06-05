@@ -57,11 +57,17 @@ struct ReleaseCenterView: View {
             }
             Spacer()
             SmallGlassButton(
-                title: viewModel.isSyncingAppStoreConnect ? "同步中" : "同步 ASC",
+                title: viewModel.isRefreshingAppStoreConnectStatus ? "更新中" : "更新状态",
+                systemImage: viewModel.isRefreshingAppStoreConnectStatus ? "arrow.triangle.2.circlepath" : "arrow.clockwise",
+                action: { viewModel.refreshAppStoreConnectStatus() }
+            )
+            .disabled(viewModel.isRefreshingAppStoreConnectStatus || viewModel.isSyncingAppStoreConnect)
+            SmallGlassButton(
+                title: viewModel.isSyncingAppStoreConnect ? "同步中" : "完整同步",
                 systemImage: viewModel.isSyncingAppStoreConnect ? "arrow.triangle.2.circlepath" : "icloud.and.arrow.down",
                 action: { viewModel.syncAppStoreConnect() }
             )
-            .disabled(viewModel.isSyncingAppStoreConnect)
+            .disabled(viewModel.isSyncingAppStoreConnect || viewModel.isRefreshingAppStoreConnectStatus)
             PlatformSegmentedControl(selection: $viewModel.selectedPlatform)
         }
     }

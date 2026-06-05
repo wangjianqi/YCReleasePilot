@@ -20,6 +20,17 @@ final class AppStoreConnectSnapshotCacheService {
         cacheURL = directory.appendingPathComponent("app-store-connect-snapshots.json")
     }
 
+    func loadCachedSnapshot(for config: AppStoreConnectConfig) -> [AppStoreConnectAppSnapshot]? {
+        guard
+            let data = try? Data(contentsOf: cacheURL),
+            let payload = try? JSONDecoder().decode(CachedPayload.self, from: data),
+            payload.configFingerprint == fingerprint(for: config)
+        else {
+            return nil
+        }
+        return payload.snapshots
+    }
+
     func loadValidSnapshot(for config: AppStoreConnectConfig, now: Date = Date()) -> [AppStoreConnectAppSnapshot]? {
         guard
             let data = try? Data(contentsOf: cacheURL),

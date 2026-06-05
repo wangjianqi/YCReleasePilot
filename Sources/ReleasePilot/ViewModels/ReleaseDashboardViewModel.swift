@@ -30,6 +30,7 @@ final class ReleaseDashboardViewModel {
     var showAllBuilds = false
     var showReleaseDetails = false
     var isSyncingAppStoreConnect = false
+    var isRefreshingAppStoreConnectStatus = false
     var appStoreConnectSyncMessage: String?
     var isUsingAppStoreConnectData = false
     var appStoreConnectAccountTitle: String?
@@ -60,6 +61,7 @@ final class ReleaseDashboardViewModel {
         selectedAppID = first.app.id
         copilotMessages = MockData.initialCopilotMessages(for: first, platform: .iOS)
         releasePlanDraft = first.data(for: .iOS).releasePlan
+        loadCachedAppStoreConnectDataIfAvailable()
     }
 
     var apps: [AppItem] {
@@ -289,23 +291,17 @@ final class ReleaseDashboardViewModel {
         Task { @MainActor in
             do {
                 let config = appStoreConnectConfigService.loadConfig()
-                if let cachedSnapshots = appStoreConnectSnapshotCacheService.loadValidSnapshot(for: config) {
-                    applyAppStoreConnectSnapshots(cachedSnapshots, config: config)
-                    appStoreConnectSyncMessage = "已使用本地缓存，避免重复请求 App Store Connect"
-                    showToast(appStoreConnectSyncMessage ?? "已使用本地缓存")
-                } else {
-                    let snapshots = try await appStoreConnectAPIService.listApps(config: config, limit: 20)
-                    guard !snapshots.isEmpty else {
-                        appStoreConnectSyncMessage = "App Store Connect 没有返回可见 App。"
-                        isSyncingAppStoreConnect = false
-                        showToast(appStoreConnectSyncMessage ?? "同步失败")
-                        return
-                    }
-                    appStoreConnectSnapshotCacheService.save(snapshots, for: config)
-                    applyAppStoreConnectSnapshots(snapshots, config: config)
-                    appStoreConnectSyncMessage = "已同步 \(snapshots.count) 个 App Store Connect App"
-                    showToast(appStoreConnectSyncMessage ?? "同步成功")
+                let snapshots = try await appStoreConnectAPIService.listApps(config: config, limit: 20)
+                guard !snapshots.isEmpty else {
+                    appStoreConnectSyncMessage = "App Store Connect 没有返回可见 App。"
+                    isSyncingAppStoreConnect = false
+                    showToast(appStoreConnectSyncMessage ?? "同步失败")
+                    return
                 }
+                appStoreConnectSnapshotCacheService.save(snapshots, for: config)
+                applyAppStoreConnectSnapshots(snapshots, config: config, preferredAppID: selectedAppID, preferredPlatform: selectedPlatform)
+                appStoreConnectSyncMessage = "已同步 \(snapshots.count) 个 App Store Connect App"
+                showToast(appStoreConnectSyncMessage ?? "同步成功")
             } catch {
                 let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
                 appStoreConnectSyncMessage = message
@@ -315,7 +311,42 @@ final class ReleaseDashboardViewModel {
         }
     }
 
-    private func applyAppStoreConnectSnapshots(_ snapshots: [AppStoreConnectAppSnapshot], config: AppStoreConnectConfig) {
+    func refreshAppStoreConnectStatus() {
+        guard !isRefreshingAppStoreConnectStatus else { return }
+        isRefreshingAppStoreConnectStatus = true
+        appStoreConnectSyncMessage = nil
+        Task { @MainActor in
+            do {
+                let config = appStoreConnectConfigService.loadConfig()
+                guard let cachedSnapshots = appStoreConnectSnapshotCacheService.loadCachedSnapshot(for: config), !cachedSnapshots.isEmpty else {
+                    isRefreshingAppStoreConnectStatus = false
+                    syncAppStoreConnect()
+                    return
+                }
+                let snapshots = try await appStoreConnectAPIService.refreshStatuses(config: config, snapshots: cachedSnapshots)
+                appStoreConnectSnapshotCacheService.save(snapshots, for: config)
+                applyAppStoreConnectSnapshots(snapshots, config: config, preferredAppID: selectedAppID, preferredPlatform: selectedPlatform)
+                appStoreConnectSyncMessage = "已更新 App 状态和构建信息"
+                showToast(appStoreConnectSyncMessage ?? "状态已更新")
+            } catch {
+                let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                appStoreConnectSyncMessage = message
+                showToast(message)
+            }
+            isRefreshingAppStoreConnectStatus = false
+        }
+    }
+
+    private func loadCachedAppStoreConnectDataIfAvailable() {
+        let config = appStoreConnectConfigService.loadConfig()
+        guard let snapshots = appStoreConnectSnapshotCacheService.loadCachedSnapshot(for: config), !snapshots.isEmpty else {
+            return
+        }
+        applyAppStoreConnectSnapshots(snapshots, config: config, preferredAppID: selectedAppID, preferredPlatform: selectedPlatform)
+        appStoreConnectSyncMessage = "已加载本地 App Store Connect 缓存"
+    }
+
+    private func applyAppStoreConnectSnapshots(_ snapshots: [AppStoreConnectAppSnapshot], config: AppStoreConnectConfig, preferredAppID: AppItem.ID? = nil, preferredPlatform: Platform? = nil) {
         let releases = snapshots.map { MockData.makeRelease(from: $0) }
         guard let firstRelease = releases.first, let firstSnapshot = snapshots.first else {
             appStoreConnectSyncMessage = "App Store Connect 没有返回可见 App。"
@@ -327,14 +358,17 @@ final class ReleaseDashboardViewModel {
         isUsingAppStoreConnectData = true
         appStoreConnectAccountTitle = config.teamID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "ASC 已连接" : "Team \(config.teamID)"
         appStoreConnectAccountSubtitle = config.issuerID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "App Store Connect" : "Issuer \(String(config.issuerID.prefix(8)))..."
-        selectedPlatform = firstPlatform
-        selectedScreenshotDevice = defaultScreenshotDevice(for: firstPlatform)
+        let nextAppID = preferredAppID.flatMap { appReleases[$0]?.app.id } ?? firstRelease.app.id
+        let nextPlatform = preferredPlatform ?? firstPlatform
+        selectedAppID = nextAppID
+        selectedPlatform = nextPlatform
+        selectedScreenshotDevice = defaultScreenshotDevice(for: nextPlatform)
         focusedModule = nil
         didSubmit = false
         blockedSubmitMessage = nil
-        releasePlanDraft = firstRelease.data(for: firstPlatform).releasePlan
-        copilotMessages = MockData.initialCopilotMessages(for: firstRelease, platform: firstPlatform)
-        selectedAppID = firstRelease.app.id
+        let selected = appReleases[nextAppID] ?? firstRelease
+        releasePlanDraft = selected.data(for: nextPlatform).releasePlan
+        copilotMessages = MockData.initialCopilotMessages(for: selected, platform: nextPlatform)
     }
 
     func handleTodo(_ todo: TodoItem) {

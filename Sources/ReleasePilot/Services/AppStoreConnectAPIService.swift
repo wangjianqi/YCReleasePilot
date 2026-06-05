@@ -90,7 +90,7 @@ final class AppStoreConnectAPIService {
             let versionResources = (try? await versions) ?? []
             let latestVersion = versionResources.first
             let latestBuilds = (try? await builds) ?? []
-            async let iconPath = cachedBuildIconPath(from: latestBuilds.first, token: token)
+            async let iconPath = cachedIconPath(from: latestBuilds.first, bundleID: app.attributes.bundleId, token: token)
             async let screenshots = cachedScreenshotSnapshots(from: latestVersion, token: token)
             snapshots.append(
                 AppStoreConnectAppSnapshot(
@@ -116,6 +116,44 @@ final class AppStoreConnectAPIService {
             )
         }
         return snapshots
+    }
+
+    func refreshStatuses(config: AppStoreConnectConfig, snapshots: [AppStoreConnectAppSnapshot]) async throws -> [AppStoreConnectAppSnapshot] {
+        let token = try makeJWT(config: config)
+        var refreshed: [AppStoreConnectAppSnapshot] = []
+
+        for snapshot in snapshots {
+            async let versions = latestVersions(appID: snapshot.id, token: token)
+            async let builds = latestBuilds(appID: snapshot.id, token: token)
+            let versionResources = (try? await versions) ?? []
+            let latestVersion = versionResources.first
+            let latestBuilds = (try? await builds) ?? snapshot.builds.map {
+                ASCResource(
+                    id: $0.id,
+                    attributes: ASCBuildAttributes(
+                        version: $0.version,
+                        uploadedDate: $0.uploadedDate.isEmpty ? nil : $0.uploadedDate,
+                        processingState: $0.processingState
+                    )
+                )
+            }
+
+            var updated = snapshot
+            updated.latestVersion = latestVersion?.attributes.versionString ?? snapshot.latestVersion
+            updated.appStoreState = latestVersion?.attributes.appStoreState ?? snapshot.appStoreState
+            updated.platform = latestVersion?.attributes.platform ?? snapshot.platform
+            updated.builds = latestBuilds.map {
+                AppStoreConnectBuildSnapshot(
+                    id: $0.id,
+                    version: $0.attributes.version,
+                    uploadedDate: $0.attributes.uploadedDate ?? "",
+                    processingState: $0.attributes.processingState ?? "Unknown"
+                )
+            }
+            refreshed.append(updated)
+        }
+
+        return refreshed
     }
 
     func testConnection(config: AppStoreConnectConfig) async -> AppStoreConnectConnectionStatus {
@@ -172,6 +210,38 @@ final class AppStoreConnectAPIService {
             let cachedURL = try await LocalAssetCacheService.cacheRemoteImage(
                 from: imageURL,
                 namespace: "asc-icon-\(build.id)-\(icon.id)",
+                session: session
+            )
+            return cachedURL.path
+        } catch {
+            return nil
+        }
+    }
+
+    private func cachedIconPath(from build: ASCResource<ASCBuildAttributes>?, bundleID: String, token: String) async -> String? {
+        if let buildIconPath = await cachedBuildIconPath(from: build, token: token) {
+            return buildIconPath
+        }
+        return await cachedPublicAppIconPath(bundleID: bundleID)
+    }
+
+    private func cachedPublicAppIconPath(bundleID: String) async -> String? {
+        var components = URLComponents(string: "https://itunes.apple.com/lookup")
+        components?.queryItems = [
+            URLQueryItem(name: "bundleId", value: bundleID)
+        ]
+        guard let url = components?.url else { return nil }
+
+        do {
+            let response: ITunesLookupResponse = try await decodePublicJSON(from: url)
+            guard let iconURLString = response.results.first?.artworkUrl512,
+                  let iconURL = URL(string: iconURLString)
+            else {
+                return nil
+            }
+            let cachedURL = try await LocalAssetCacheService.cacheRemoteImage(
+                from: iconURL,
+                namespace: "itunes-icon-\(bundleID)",
                 session: session
             )
             return cachedURL.path
@@ -251,7 +321,8 @@ final class AppStoreConnectAPIService {
             "{h}": "\(height)",
             "{f}": "png",
             "{scale}": "1",
-            "{quality}": "90"
+            "{quality}": "90",
+            "{c}": "0"
         ]
         var template = imageAsset.templateURL
         for (placeholder, value) in replacements {
@@ -312,6 +383,14 @@ final class AppStoreConnectAPIService {
             await NetworkRequestLogger.shared.logRequestError(endpoint: path, method: "GET", queryItems: queryItems, errorMessage: error.localizedDescription, duration: duration)
             throw error
         }
+    }
+
+    private func decodePublicJSON<Response: Decodable>(from url: URL) async throws -> Response {
+        let (data, response) = try await session.data(from: url)
+        if let httpResponse = response as? HTTPURLResponse, !(200..<300).contains(httpResponse.statusCode) {
+            throw AppStoreConnectAPIError.requestFailed(statusCode: httpResponse.statusCode, message: "Apple Lookup 请求失败")
+        }
+        return try JSONDecoder().decode(Response.self, from: data)
     }
 
     private func makeJWT(config: AppStoreConnectConfig) throws -> String {
@@ -422,4 +501,12 @@ private struct ASCErrorResponse: Decodable {
 private struct ASCError: Decodable {
     let title: String?
     let detail: String?
+}
+
+private struct ITunesLookupResponse: Decodable {
+    let results: [ITunesLookupApp]
+}
+
+private struct ITunesLookupApp: Decodable {
+    let artworkUrl512: String?
 }
