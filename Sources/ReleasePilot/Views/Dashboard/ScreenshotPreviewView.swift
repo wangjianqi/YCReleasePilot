@@ -121,11 +121,11 @@ private struct ScreenshotPhoneView: View {
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
                     .fill(Color.black)
 
-                if let image = LocalAssetCacheService.screenshot(for: item, width: 80, height: 184) {
+                if let image = LocalAssetCacheService.screenshot(for: item, width: 110, height: 240) {
                     Image(nsImage: image)
                         .resizable()
-                        .scaledToFill()
-                        .frame(width: 80, height: 184)
+                        .scaledToFit()
+                        .frame(width: 110, height: 240)
                         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                 } else {
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
@@ -179,11 +179,11 @@ private struct ScreenshotPhoneView: View {
                     .foregroundStyle(.white)
                     .background(Color.black.opacity(0.36))
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                    .offset(x: 32, y: -70)
+                    .offset(x: 48, y: -100)
                     .buttonStyle(.plain)
                 }
             }
-            .frame(width: 94, height: 204)
+            .frame(width: 130, height: 260)
             .overlay(
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
                     .stroke(Color.white.opacity(0.26), lineWidth: 1)
