@@ -202,14 +202,14 @@ struct SidebarView: View {
                 ZStack {
                     Circle().fill(Theme.ColorToken.text)
                     Text(viewModel.accountAvatarText)
-                        .font(.system(size: 14, weight: .bold))
+                        .font(.system(size: 10, weight: .bold))
                         .foregroundStyle(Theme.ColorToken.panel)
                 }
-                .frame(width: 38, height: 38)
+                .frame(width: 28, height: 28)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(viewModel.accountDisplayName)
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(.system(size: 12, weight: .semibold))
                     Text(viewModel.accountDisplaySubtitle)
                         .font(.caption)
                         .foregroundStyle(Theme.ColorToken.muted)
