@@ -78,9 +78,11 @@
 		BE8F0D930EE851CBA8880B71 /* AppStoreConnectSnapshotCacheService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C033B1B864C1082BE5C0BE4 /* AppStoreConnectSnapshotCacheService.swift */; };
 		C091E2E56FF7D7497EA97CF2 /* TodoCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 889AAC77FC598637521F6495 /* TodoCardView.swift */; };
 		C41F8A58BF22B1CD120AA7D0 /* OpenAICompatibleChatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F4A8BD42A2D1BA567F5CFAD /* OpenAICompatibleChatService.swift */; };
+		C64D3A46505F5A727F015F85 /* SwiftyChat in Frameworks */ = {isa = PBXBuildFile; productRef = D0D00883C3039DF21F19FFF8 /* SwiftyChat */; };
 		C850B2916E6020790D5E594C /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 2D0CE5B770490506D58C2826 /* assets */; };
 		C8A40B3C6B3C3574281BAF91 /* SettingsPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7CF385F565952280A27A050 /* SettingsPageView.swift */; };
 		CAE9C3233729BA4831A92928 /* CircularProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6352F6A2DFDE07075DDA98 /* CircularProgressView.swift */; };
+		CC479CFDE319E26151E896C6 /* LLMStream in Frameworks */ = {isa = PBXBuildFile; productRef = 1A9A43CE94C3639CF12C25A4 /* LLMStream */; };
 		CEFF12C78265FB341A1E9DFE /* BuildCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D711AB93B208DA52705493E7 /* BuildCardView.swift */; };
 		D00718AE0CCAEB5D199180C2 /* AICopilotPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0563C2429F630D87C3593C /* AICopilotPanelView.swift */; };
 		D518E71E0B03485C73333D24 /* ReleasePilotApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B24ACEC07905D7B769F0EC8A /* ReleasePilotApp.swift */; };
@@ -190,6 +192,18 @@
 		F17AE4A5CEE7F868DDC098EB /* MockData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockData.swift; sourceTree = "<group>"; };
 		F5EF6BFF78F7B2120DB1C57A /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		4753F7D1A2D4CA8435362586 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CC479CFDE319E26151E896C6 /* LLMStream in Frameworks */,
+				C64D3A46505F5A727F015F85 /* SwiftyChat in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		000D6AAE9F2BC19C24F8153E = {
@@ -434,6 +448,7 @@
 			buildPhases = (
 				5FA0DEE4BB179184F5535F8F /* Sources */,
 				3F2B91819415B842325F7219 /* Resources */,
+				4753F7D1A2D4CA8435362586 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -441,6 +456,8 @@
 			);
 			name = ReleasePilot;
 			packageProductDependencies = (
+				1A9A43CE94C3639CF12C25A4 /* LLMStream */,
+				D0D00883C3039DF21F19FFF8 /* SwiftyChat */,
 			);
 			productName = ReleasePilot;
 			productReference = 0317832CDB61EFFEEBAD59E7 /* ReleasePilot.app */;
@@ -469,6 +486,10 @@
 			);
 			mainGroup = 000D6AAE9F2BC19C24F8153E;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				8FE280B2C2DFA508A7BBB57E /* XCRemoteSwiftPackageReference "LLMStream" */,
+				0E2107F7271F55B0BD5E324C /* XCRemoteSwiftPackageReference "SwiftyChat" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 3CC33A3C2165A358CAE5B86D /* Products */;
 			projectDirPath = "";
@@ -780,6 +801,38 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		0E2107F7271F55B0BD5E324C /* XCRemoteSwiftPackageReference "SwiftyChat" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/EnesKaraosman/SwiftyChat.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.1.1;
+			};
+		};
+		8FE280B2C2DFA508A7BBB57E /* XCRemoteSwiftPackageReference "LLMStream" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/synth-inc/LLMStream";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		1A9A43CE94C3639CF12C25A4 /* LLMStream */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8FE280B2C2DFA508A7BBB57E /* XCRemoteSwiftPackageReference "LLMStream" */;
+			productName = LLMStream;
+		};
+		D0D00883C3039DF21F19FFF8 /* SwiftyChat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0E2107F7271F55B0BD5E324C /* XCRemoteSwiftPackageReference "SwiftyChat" */;
+			productName = SwiftyChat;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 1B81BA94DE79410450ADE4AD /* Project object */;
 }

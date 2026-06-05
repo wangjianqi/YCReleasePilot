@@ -9,6 +9,13 @@ settings:
     MACOSX_DEPLOYMENT_TARGET: "14.0"
     CODE_SIGN_STYLE: Manual
     CODE_SIGN_IDENTITY: "-"
+packages:
+  LLMStream:
+    url: https://github.com/synth-inc/LLMStream
+    branch: main
+  SwiftyChat:
+    url: https://github.com/EnesKaraosman/SwiftyChat.git
+    from: 4.1.1
 targets:
   ReleasePilot:
     type: application
@@ -19,6 +26,9 @@ targets:
       - path: assets
         type: folder
       - path: Resources/Assets.xcassets
+    dependencies:
+      - package: LLMStream
+      - package: SwiftyChat
     settings:
       base:
         PRODUCT_NAME: ReleasePilot
