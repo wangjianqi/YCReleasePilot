@@ -29,9 +29,11 @@ struct CopilotPanelView: View {
                     )
                 }
             }
+            .frame(maxHeight: .infinity)
             footer
         }
         .padding(16)
+        .frame(maxHeight: .infinity)
         .background(surface)
         .onAppear {
             copilotViewModel.syncSelectedProvider()

@@ -17,6 +17,7 @@ struct ReleaseCenterView: View {
                 }
                 .padding(18)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .onChange(of: viewModel.focusedModule) { _, module in
                 guard let module else { return }
                 withAnimation(.easeInOut(duration: 0.25)) {

@@ -74,9 +74,10 @@ struct RootView: View {
                     }
                 )
                     .frame(width: viewModel.isSidebarCollapsed ? 74 : 252)
+                    .frame(maxHeight: .infinity)
 
                 mainContent
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                 if !viewModel.isCopilotHidden {
                     CopilotPanelView(
@@ -89,6 +90,7 @@ struct RootView: View {
                         }
                     )
                         .frame(width: viewModel.isCopilotExpanded ? 460 : 360)
+                        .frame(maxHeight: .infinity)
                 } else {
                     Button {
                         viewModel.isCopilotHidden = false
@@ -104,6 +106,7 @@ struct RootView: View {
                 }
             }
             .padding(10)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             if let dialog = viewModel.activeDialog {
                 dialogView(dialog)
@@ -117,6 +120,7 @@ struct RootView: View {
             }
         }
         .foregroundStyle(Theme.ColorToken.text)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .sheet(isPresented: Binding(
             get: { membershipViewModel.showingPaywall },
             set: { membershipViewModel.showingPaywall = $0 }

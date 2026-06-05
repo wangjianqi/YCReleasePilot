@@ -23,5 +23,6 @@ struct CopilotSuggestionsView: View {
                 }
             }
         }
+        .frame(maxHeight: .infinity)
     }
 }

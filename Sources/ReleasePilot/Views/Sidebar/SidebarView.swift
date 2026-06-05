@@ -22,7 +22,6 @@ struct SidebarView: View {
             } else {
                 compactAppList
             }
-            Spacer(minLength: 10)
             if !viewModel.isSidebarCollapsed {
                 proPlan
                 userInfo
@@ -30,6 +29,7 @@ struct SidebarView: View {
             collapseBar
         }
         .padding(14)
+        .frame(maxHeight: .infinity, alignment: .top)
         .background(surface)
     }
 
@@ -111,35 +111,41 @@ struct SidebarView: View {
             }
             .padding(.horizontal, 4)
 
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 8) {
+                    ForEach(viewModel.apps) { app in
+                        Button {
+                            viewModel.selectApp(app)
+                        } label: {
+                            AppListItemView(app: app, isSelected: app.id == viewModel.selectedAppID)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+        }
+        .frame(maxHeight: .infinity)
+    }
+
+    private var compactAppList: some View {
+        ScrollView(showsIndicators: false) {
             VStack(spacing: 8) {
                 ForEach(viewModel.apps) { app in
                     Button {
                         viewModel.selectApp(app)
                     } label: {
-                        AppListItemView(app: app, isSelected: app.id == viewModel.selectedAppID)
+                        AppIconView(app: app, size: 38)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 11, style: .continuous)
+                                    .stroke(app.id == viewModel.selectedAppID ? Theme.ColorToken.blue.opacity(0.8) : .clear, lineWidth: 2)
+                            )
                     }
                     .buttonStyle(.plain)
                 }
             }
+            .frame(maxWidth: .infinity)
         }
-    }
-
-    private var compactAppList: some View {
-        VStack(spacing: 8) {
-            ForEach(viewModel.apps) { app in
-                Button {
-                    viewModel.selectApp(app)
-                } label: {
-                    AppIconView(app: app, size: 38)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 11, style: .continuous)
-                                .stroke(app.id == viewModel.selectedAppID ? Theme.ColorToken.blue.opacity(0.8) : .clear, lineWidth: 2)
-                        )
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var proPlan: some View {

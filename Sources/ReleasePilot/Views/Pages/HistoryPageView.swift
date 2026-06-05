@@ -37,6 +37,7 @@ struct HistoryPageView: View {
             }
             .padding(18)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(surface)
     }
 

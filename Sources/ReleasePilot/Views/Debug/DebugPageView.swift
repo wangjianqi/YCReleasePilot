@@ -16,6 +16,7 @@ struct DebugPageView: View {
                 requestList
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Theme.ColorToken.background.opacity(0.3))
     }
 

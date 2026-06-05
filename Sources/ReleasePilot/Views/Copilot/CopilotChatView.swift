@@ -20,6 +20,7 @@ struct CopilotChatView: View {
                 composer
             }
         }
+        .frame(maxHeight: .infinity)
         .onAppear {
             copilotViewModel.syncSelectedProvider()
         }
@@ -41,7 +42,7 @@ struct CopilotChatView: View {
                 .buttonStyle(.borderedProminent)
             Spacer()
         }
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var limitState: some View {
@@ -61,6 +62,7 @@ struct CopilotChatView: View {
             .buttonStyle(.borderedProminent)
             Spacer()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var modelSelectors: some View {
@@ -103,6 +105,7 @@ struct CopilotChatView: View {
                 }
             }
         }
+        .frame(maxHeight: .infinity)
     }
 
     private var quickActions: some View {

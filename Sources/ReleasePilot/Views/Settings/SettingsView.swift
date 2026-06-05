@@ -13,6 +13,7 @@ struct SettingsView: View {
             detail
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(surface)
         .sheet(item: Binding(
             get: { viewModel.aiProvidersViewModel.editingDraft },
