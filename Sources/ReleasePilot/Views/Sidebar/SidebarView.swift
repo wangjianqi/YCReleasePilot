@@ -64,6 +64,20 @@ struct SidebarView: View {
                 }
             }
         }
+        .onTapGesture(count: 2) {
+            toggleFullScreen()
+        }
+    }
+
+    private func toggleFullScreen() {
+        guard let window = NSApp.mainWindow else { return }
+        let currentScreen = window.screen ?? NSScreen.main
+        if window.styleMask.contains(.fullScreen) {
+            window.toggleFullScreen(nil)
+        } else if let screen = currentScreen {
+            let frame = screen.visibleFrame
+            window.setFrame(frame, display: true, animate: true)
+        }
     }
 
     private var navigation: some View {
