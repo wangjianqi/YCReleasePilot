@@ -45,12 +45,6 @@ struct SidebarView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 8) {
-                Circle().fill(Color(hex: 0xFF5F57)).frame(width: 12, height: 12)
-                Circle().fill(Color(hex: 0xFFBD2E)).frame(width: 12, height: 12)
-                Circle().fill(Color(hex: 0x28C840)).frame(width: 12, height: 12)
-            }
-
             HStack(spacing: 10) {
                 ZStack {
                     LinearGradient(colors: [Theme.ColorToken.blue, Theme.ColorToken.purple], startPoint: .topLeading, endPoint: .bottomTrailing)
