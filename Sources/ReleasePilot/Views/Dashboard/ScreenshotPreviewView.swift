@@ -123,22 +123,64 @@ private struct ScreenshotPhoneView: View {
     let onReplace: () -> Void
     @State private var isHovering = false
 
+    private var deviceSize: CGSize {
+        switch item.device {
+        case .iPhone69, .iPhone65:
+            return CGSize(width: 130, height: 260)
+        case .iPadPro, .iPad109:
+            return CGSize(width: 340, height: 260)
+        case .mac:
+            return CGSize(width: 380, height: 240)
+        }
+    }
+
+    private var imageSize: CGSize {
+        switch item.device {
+        case .iPhone69, .iPhone65:
+            return CGSize(width: 110, height: 240)
+        case .iPadPro, .iPad109:
+            return CGSize(width: 320, height: 240)
+        case .mac:
+            return CGSize(width: 360, height: 220)
+        }
+    }
+
+    private var cornerRadius: CGFloat {
+        switch item.device {
+        case .iPhone69, .iPhone65:
+            return 20
+        case .iPadPro, .iPad109, .mac:
+            return 12
+        }
+    }
+
+    private var actionOffset: CGPoint {
+        switch item.device {
+        case .iPhone69, .iPhone65:
+            return CGPoint(x: 48, y: -100)
+        case .iPadPro, .iPad109:
+            return CGPoint(x: 148, y: -100)
+        case .mac:
+            return CGPoint(x: 168, y: -90)
+        }
+    }
+
     var body: some View {
         VStack(spacing: 8) {
             ZStack {
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                     .fill(Color.black)
 
-                if let image = LocalAssetCacheService.screenshot(for: item, width: 110, height: 240) {
+                if let image = LocalAssetCacheService.screenshot(for: item, width: imageSize.width, height: imageSize.height) {
                     Image(nsImage: image)
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 110, height: 240)
-                        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                        .frame(width: imageSize.width, height: imageSize.height)
+                        .clipShape(RoundedRectangle(cornerRadius: cornerRadius - 2, style: .continuous))
                 } else {
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    RoundedRectangle(cornerRadius: cornerRadius - 2, style: .continuous)
                         .fill(LinearGradient(colors: gradientColors, startPoint: .top, endPoint: .bottom))
-                        .padding(7)
+                        .padding(item.device == .mac ? 4 : 7)
 
                     VStack(spacing: 5) {
                         Text(item.title)
@@ -187,13 +229,13 @@ private struct ScreenshotPhoneView: View {
                     .foregroundStyle(.white)
                     .background(Color.black.opacity(0.36))
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                    .offset(x: 48, y: -100)
+                    .offset(x: actionOffset.x, y: actionOffset.y)
                     .buttonStyle(.plain)
                 }
             }
-            .frame(width: 130, height: 260)
+            .frame(width: deviceSize.width, height: deviceSize.height)
             .overlay(
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                     .stroke(Color.white.opacity(0.26), lineWidth: 1)
             )
 
