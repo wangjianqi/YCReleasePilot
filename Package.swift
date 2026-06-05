@@ -14,6 +14,11 @@ let package = Package(
         .executableTarget(
             name: "ReleasePilot",
             path: "Sources/ReleasePilot"
+        ),
+        .testTarget(
+            name: "ReleasePilotTests",
+            dependencies: ["ReleasePilot"],
+            path: "Tests/ReleasePilotTests"
         )
     ]
 )

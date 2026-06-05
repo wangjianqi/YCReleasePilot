@@ -147,8 +147,7 @@ final class AppStoreConnectAPIService {
         request.httpMethod = "GET"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
 
-        let logger = NetworkRequestLogger.shared
-        logger.logRequestStart(endpoint: path, method: "GET", queryItems: queryItems)
+        await NetworkRequestLogger.shared.logRequestStart(endpoint: path, method: "GET", queryItems: queryItems)
         let startTime = Date()
 
         do {
@@ -156,27 +155,27 @@ final class AppStoreConnectAPIService {
             let duration = Date().timeIntervalSince(startTime)
 
             guard let httpResponse = response as? HTTPURLResponse else {
-                logger.logRequestError(endpoint: path, method: "GET", queryItems: queryItems, errorMessage: "Empty response", duration: duration)
+                await NetworkRequestLogger.shared.logRequestError(endpoint: path, method: "GET", queryItems: queryItems, errorMessage: "Empty response", duration: duration)
                 throw AppStoreConnectAPIError.emptyResponse
             }
 
             guard (200..<300).contains(httpResponse.statusCode) else {
                 let error = try? JSONDecoder().decode(ASCErrorResponse.self, from: data)
                 let message = error?.errors.first?.detail ?? error?.errors.first?.title ?? String(data: data, encoding: .utf8) ?? "未知错误"
-                logger.logRequestComplete(endpoint: path, method: "GET", queryItems: queryItems, statusCode: httpResponse.statusCode, duration: duration)
+                await NetworkRequestLogger.shared.logRequestComplete(endpoint: path, method: "GET", queryItems: queryItems, statusCode: httpResponse.statusCode, duration: duration)
                 throw AppStoreConnectAPIError.requestFailed(
                     statusCode: httpResponse.statusCode,
                     message: message
                 )
             }
 
-            logger.logRequestComplete(endpoint: path, method: "GET", queryItems: queryItems, statusCode: httpResponse.statusCode, duration: duration)
+            await NetworkRequestLogger.shared.logRequestComplete(endpoint: path, method: "GET", queryItems: queryItems, statusCode: httpResponse.statusCode, duration: duration)
             return try JSONDecoder().decode(Response.self, from: data)
         } catch let error as AppStoreConnectAPIError {
             throw error
         } catch {
             let duration = Date().timeIntervalSince(startTime)
-            logger.logRequestError(endpoint: path, method: "GET", queryItems: queryItems, errorMessage: error.localizedDescription, duration: duration)
+            await NetworkRequestLogger.shared.logRequestError(endpoint: path, method: "GET", queryItems: queryItems, errorMessage: error.localizedDescription, duration: duration)
             throw error
         }
     }

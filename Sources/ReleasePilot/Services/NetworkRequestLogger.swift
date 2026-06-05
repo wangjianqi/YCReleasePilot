@@ -78,14 +78,13 @@ enum DuplicateSeverity: Int, Comparable {
     }
 }
 
+@MainActor
 @Observable
 final class NetworkRequestLogger {
     static let shared = NetworkRequestLogger()
 
     private(set) var records: [APIRequestRecord] = []
     private(set) var groups: [APIRequestGroup] = []
-
-    private var ongoingRequests: [String: Date] = [:] // deduplicationKey -> startTime
 
     private init() {}
 
@@ -104,8 +103,6 @@ final class NetworkRequestLogger {
             errorMessage: nil,
             duration: nil
         )
-        let key = record.deduplicationKey
-        ongoingRequests[key] = Date()
         records.append(record)
         rebuildGroups()
     }
@@ -125,8 +122,6 @@ final class NetworkRequestLogger {
             errorMessage: nil,
             duration: duration
         )
-        let key = record.deduplicationKey
-        ongoingRequests.removeValue(forKey: key)
         records.append(record)
         rebuildGroups()
     }
@@ -146,8 +141,6 @@ final class NetworkRequestLogger {
             errorMessage: errorMessage,
             duration: duration
         )
-        let key = record.deduplicationKey
-        ongoingRequests.removeValue(forKey: key)
         records.append(record)
         rebuildGroups()
     }
@@ -156,7 +149,6 @@ final class NetworkRequestLogger {
     func clearAll() {
         records.removeAll()
         groups.removeAll()
-        ongoingRequests.removeAll()
     }
 
     /// 总请求数

@@ -49,3 +49,9 @@ The build script (`script/build_and_run.sh`) compiles via `swift build`, then cr
 - **AppKit integration** via `@NSApplicationDelegateAdaptor(AppDelegate.self)` for macOS lifecycle. `NSOpenPanel` used for file picking.
 - **Shared components** live in `Views/Shared/` (GlassCard, PrimaryButton, StatusBadge, etc.) — reuse these for consistency.
 - **Settings page** uses its own sidebar (`SettingsSidebar.swift`) with sub-views per section (General, AI Providers, App Store Connect, Membership, Privacy, About).
+
+## Testing Rules
+
+- **All tests must NOT use real API interfaces or external network calls.** Use mocks, stubs, or local in-memory implementations only.
+- Never invoke actual App Store Connect, AI provider, or any third-party endpoints in test code.
+- Reset shared singletons before/after tests to avoid state leakage.
