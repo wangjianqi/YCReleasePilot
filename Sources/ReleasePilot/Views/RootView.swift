@@ -80,13 +80,20 @@ struct RootView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                 if !viewModel.isCopilotHidden {
-                    CopilotPanelView(
-                        viewModel: viewModel,
-                        copilotViewModel: copilotViewModel,
-                        membershipViewModel: membershipViewModel,
-                        onOpenSettings: {
-                            settingsViewModel.selectedSection = .aiProviders
-                            viewModel.selectPage(.settings)
+                    AICopilotPanelView(
+                        isExpanded: viewModel.isCopilotExpanded,
+                        onToggleExpanded: {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                viewModel.isCopilotExpanded.toggle()
+                            }
+                        },
+                        onClose: {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                viewModel.isCopilotHidden = true
+                            }
+                        },
+                        quickPrompt: { title in
+                            viewModel.copilotPrompt(for: title)
                         }
                     )
                         .frame(width: viewModel.isCopilotExpanded ? 460 : 360)

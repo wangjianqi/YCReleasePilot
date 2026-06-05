@@ -17,6 +17,7 @@
 		13D6CDAAE744B34419544315 /* PrimaryButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D737719D212904D1E716EFE /* PrimaryButton.swift */; };
 		154DCA76714702B181C936DB /* CopilotSuggestionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D2C61F3849D679177D4BBA4 /* CopilotSuggestionsView.swift */; };
 		15C8C257BB744DB329C873C1 /* CopilotSuggestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADB49AD4AE36E626DC1267F0 /* CopilotSuggestion.swift */; };
+		19B5675199B47001B8A5C560 /* AICopilotPanelViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF7366AF735FBD9BAE713404 /* AICopilotPanelViewModel.swift */; };
 		1A8678B784F2D2BE105FCCED /* ToastService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D12DA048B7C664A93BD098B8 /* ToastService.swift */; };
 		1B432E561C05CC012E97D6F2 /* CopilotSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545C6B742ED0E9D256E79B44 /* CopilotSession.swift */; };
 		20131D77A93A9D13B2005335 /* AIProviderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09F15CA42084B4BDB91AB41C /* AIProviderService.swift */; };
@@ -48,6 +49,7 @@
 		69B53A16B7864866DCE3A327 /* CopilotQuickActionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A83E210589CDE7E0632FE0B3 /* CopilotQuickActionView.swift */; };
 		78669CF4CF82B41AC9B01D73 /* AboutSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 885B3C8B17053553BFFB776B /* AboutSettingsView.swift */; };
 		78AEF1D8CF5C66BCBFD015ED /* ScreenshotItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96CBC4161ECB7EE6C9360D3 /* ScreenshotItem.swift */; };
+		7C4B3CFEB816EFE610912B32 /* AICopilotChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 412987D0F54EEC750AEC6C5A /* AICopilotChatMessage.swift */; };
 		7DAB553009E106F0C47F7F87 /* StatusBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14DAD7C7BC9C37E5345CFE16 /* StatusBadge.swift */; };
 		7F481B1DB0050AE263735954 /* CopilotPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C1009A33662CEC86C234988 /* CopilotPanelView.swift */; };
 		80AFA8B7ED27364C39076A89 /* ReleaseDashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AC9ED16FBFC227182B976C7 /* ReleaseDashboardViewModel.swift */; };
@@ -80,6 +82,7 @@
 		C8A40B3C6B3C3574281BAF91 /* SettingsPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7CF385F565952280A27A050 /* SettingsPageView.swift */; };
 		CAE9C3233729BA4831A92928 /* CircularProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6352F6A2DFDE07075DDA98 /* CircularProgressView.swift */; };
 		CEFF12C78265FB341A1E9DFE /* BuildCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D711AB93B208DA52705493E7 /* BuildCardView.swift */; };
+		D00718AE0CCAEB5D199180C2 /* AICopilotPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0563C2429F630D87C3593C /* AICopilotPanelView.swift */; };
 		D518E71E0B03485C73333D24 /* ReleasePilotApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B24ACEC07905D7B769F0EC8A /* ReleasePilotApp.swift */; };
 		D636FF3ED05FE119B30F3FBD /* NetworkRequestLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA65D61B475788B65DEFA54 /* NetworkRequestLogger.swift */; };
 		D6FF20CDF296E5346565DF59 /* NavigationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 007A4973522B0CF80E955811 /* NavigationState.swift */; };
@@ -116,9 +119,11 @@
 		3831A8FEB03FD84E5E798F9F /* AppStoreConnectConfigService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreConnectConfigService.swift; sourceTree = "<group>"; };
 		3F4A8BD42A2D1BA567F5CFAD /* OpenAICompatibleChatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAICompatibleChatService.swift; sourceTree = "<group>"; };
 		3F6352F6A2DFDE07075DDA98 /* CircularProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircularProgressView.swift; sourceTree = "<group>"; };
+		412987D0F54EEC750AEC6C5A /* AICopilotChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AICopilotChatMessage.swift; sourceTree = "<group>"; };
 		4153294E178EEFCE61208ED7 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
 		43780238981B5B2BC8079ECE /* AppStoreConnectSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreConnectSettingsView.swift; sourceTree = "<group>"; };
 		4D2C61F3849D679177D4BBA4 /* CopilotSuggestionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopilotSuggestionsView.swift; sourceTree = "<group>"; };
+		4F0563C2429F630D87C3593C /* AICopilotPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AICopilotPanelView.swift; sourceTree = "<group>"; };
 		514D4368658C6246D627EB57 /* MetricCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricCardView.swift; sourceTree = "<group>"; };
 		545C6B742ED0E9D256E79B44 /* CopilotSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopilotSession.swift; sourceTree = "<group>"; };
 		5BAF31A8810B700EAEB5AF55 /* AccountMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountMenuView.swift; sourceTree = "<group>"; };
@@ -172,6 +177,7 @@
 		D711AB93B208DA52705493E7 /* BuildCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildCardView.swift; sourceTree = "<group>"; };
 		D94B583458E64B8D2329B72C /* VersionHistoryModalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VersionHistoryModalView.swift; sourceTree = "<group>"; };
 		DC299CE666C6730CFDF8E0F0 /* AppItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppItem.swift; sourceTree = "<group>"; };
+		DF7366AF735FBD9BAE713404 /* AICopilotPanelViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AICopilotPanelViewModel.swift; sourceTree = "<group>"; };
 		E1D6DFC3ECB7C85F81EDCFE0 /* GeneralSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsView.swift; sourceTree = "<group>"; };
 		E3FEDDF41E0265EB9796EA10 /* WindowTitleBarDoubleClickInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowTitleBarDoubleClickInstaller.swift; sourceTree = "<group>"; };
 		E56D1097147F24FE6D3BC4C3 /* CopilotViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopilotViewModel.swift; sourceTree = "<group>"; };
@@ -214,6 +220,7 @@
 		0DD0202B5C8E9637A455143A /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
+				DF7366AF735FBD9BAE713404 /* AICopilotPanelViewModel.swift */,
 				0B72E4BEA7036843CD7B38E4 /* AIProvidersViewModel.swift */,
 				E56D1097147F24FE6D3BC4C3 /* CopilotViewModel.swift */,
 				83804EA2EE782C4020230808 /* MembershipViewModel.swift */,
@@ -331,6 +338,7 @@
 		8F6DA61DCB5245602D06E793 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				412987D0F54EEC750AEC6C5A /* AICopilotChatMessage.swift */,
 				95184B83965FB508520F9762 /* AIProvider.swift */,
 				F133E0B0227A48DA89BC1172 /* AIProviderType.swift */,
 				E6A2AA62D2190D18B98F1A2E /* AppDraft.swift */,
@@ -362,6 +370,7 @@
 		A605DB845DF159DB97446AF2 /* Copilot */ = {
 			isa = PBXGroup;
 			children = (
+				4F0563C2429F630D87C3593C /* AICopilotPanelView.swift */,
 				EF484193CED00D2D9F388C77 /* CopilotChatView.swift */,
 				0CD67C503356EF59BECB457F /* CopilotMessageView.swift */,
 				1C1009A33662CEC86C234988 /* CopilotPanelView.swift */,
@@ -487,6 +496,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7C4B3CFEB816EFE610912B32 /* AICopilotChatMessage.swift in Sources */,
+				D00718AE0CCAEB5D199180C2 /* AICopilotPanelView.swift in Sources */,
+				19B5675199B47001B8A5C560 /* AICopilotPanelViewModel.swift in Sources */,
 				57DADFECD8B1119603AF9DBD /* AIProvider.swift in Sources */,
 				945BE940C7046007B0D73562 /* AIProviderEditSheet.swift in Sources */,
 				20131D77A93A9D13B2005335 /* AIProviderService.swift in Sources */,
