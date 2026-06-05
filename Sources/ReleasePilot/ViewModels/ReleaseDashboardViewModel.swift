@@ -37,6 +37,7 @@ final class ReleaseDashboardViewModel {
     var isUsingAppStoreConnectData = false
     var appStoreConnectAccountTitle: String?
     var appStoreConnectAccountSubtitle: String?
+    var showsSensitiveInfo: Bool = true
 
     private let appStoreConnectConfigService: AppStoreConnectConfigService
     private let appStoreConnectAPIService: AppStoreConnectAPIService
@@ -98,11 +99,17 @@ final class ReleaseDashboardViewModel {
     }
 
     var accountDisplayName: String {
-        appStoreConnectAccountTitle ?? AppStrings.userName
+        guard showsSensitiveInfo else {
+            return appStoreConnectAccountTitle != nil ? "Team ••••••" : AppStrings.userName
+        }
+        return appStoreConnectAccountTitle ?? AppStrings.userName
     }
 
     var accountDisplaySubtitle: String {
-        appStoreConnectAccountSubtitle ?? AppStrings.userEmail
+        guard showsSensitiveInfo else {
+            return appStoreConnectAccountSubtitle != nil ? "Issuer ••••••" : AppStrings.userEmail
+        }
+        return appStoreConnectAccountSubtitle ?? AppStrings.userEmail
     }
 
     var accountAvatarText: String {

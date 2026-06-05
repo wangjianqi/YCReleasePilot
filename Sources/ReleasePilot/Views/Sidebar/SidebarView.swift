@@ -216,6 +216,14 @@ struct SidebarView: View {
                         .lineLimit(1)
                 }
                 Spacer()
+                Button {
+                    viewModel.showsSensitiveInfo.toggle()
+                } label: {
+                    Image(systemName: viewModel.showsSensitiveInfo ? "eye.slash" : "eye")
+                        .font(.caption)
+                        .foregroundStyle(Theme.ColorToken.muted)
+                }
+                .buttonStyle(.plain)
                 Image(systemName: showingAccountMenu ? "chevron.up" : "chevron.down")
                     .foregroundStyle(Theme.ColorToken.muted)
             }
