@@ -9,28 +9,32 @@ struct HistoryPageView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("History")
                         .font(.system(size: 26, weight: .bold))
-                    Text(viewModel.isUsingAppStoreConnectData ? "来自 App Store Connect 同步的版本和构建历史" : "Mock 发布历史，包含版本、平台、提交时间和审核状态")
+                    Text(viewModel.isUsingAppStoreConnectData ? "来自 App Store Connect 同步的真实版本历史" : "本地演示发布历史，包含版本、平台、提交时间和审核状态")
                         .font(.caption)
                         .foregroundStyle(Theme.ColorToken.muted)
                 }
 
                 GlassCard {
                     VStack(spacing: 0) {
-                        historyHeader
-                        ForEach(viewModel.historyItems) { item in
-                            HStack {
-                                Text(item.appName).frame(width: 120, alignment: .leading)
-                                Text(item.platform.rawValue).frame(width: 80, alignment: .leading)
-                                Text(item.version).frame(width: 80, alignment: .leading)
-                                Text("#\(item.build)").frame(width: 70, alignment: .leading)
-                                StatusBadge(title: item.status, tint: tint(for: item.status))
-                                Spacer()
-                                Text(item.submittedAt)
-                                    .foregroundStyle(Theme.ColorToken.muted)
+                        if viewModel.historyItems.isEmpty {
+                            emptyState
+                        } else {
+                            historyHeader
+                            ForEach(viewModel.historyItems) { item in
+                                HStack {
+                                    Text(item.appName).frame(width: 120, alignment: .leading)
+                                    Text(item.platform.rawValue).frame(width: 80, alignment: .leading)
+                                    Text(item.version).frame(width: 80, alignment: .leading)
+                                    Text(item.build > 0 ? "#\(item.build)" : "暂无").frame(width: 70, alignment: .leading)
+                                    StatusBadge(title: item.status, tint: tint(for: item.status))
+                                    Spacer()
+                                    Text(item.submittedAt)
+                                        .foregroundStyle(Theme.ColorToken.muted)
+                                }
+                                .font(.caption)
+                                .padding(.vertical, 11)
+                                Divider().overlay(Theme.ColorToken.line)
                             }
-                            .font(.caption)
-                            .padding(.vertical, 11)
-                            Divider().overlay(Theme.ColorToken.line)
                         }
                     }
                 }
@@ -54,6 +58,19 @@ struct HistoryPageView: View {
         .font(.caption.weight(.semibold))
         .foregroundStyle(Theme.ColorToken.muted)
         .padding(.bottom, 10)
+    }
+
+    private var emptyState: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("暂无 ASC 版本历史", systemImage: "clock")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Theme.ColorToken.soft)
+            Text("App Store Connect 没有返回 appStoreVersions，ReleasePilot 不会生成模拟版本历史兜底。")
+                .font(.caption2)
+                .foregroundStyle(Theme.ColorToken.muted)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 10)
     }
 
     private func tint(for status: String) -> Color {

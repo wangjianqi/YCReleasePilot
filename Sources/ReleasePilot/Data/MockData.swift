@@ -118,7 +118,7 @@ enum MockData {
 
     static func makeRelease(from snapshot: AppStoreConnectAppSnapshot) -> AppReleaseMock {
         let version = snapshot.latestVersion?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? snapshot.latestVersion! : "1.0.0"
-        let buildNumber = snapshot.builds.first.flatMap { Int($0.version) } ?? Int(snapshot.builds.first?.id.suffix(4) ?? "") ?? 1
+        let buildNumber = snapshot.builds.first.flatMap { Int($0.version) } ?? 0
         let state = snapshot.appStoreState.map(readableState) ?? "Synced from ASC"
         let readiness = readiness(forASCState: snapshot.appStoreState)
         let app = AppItem(
@@ -158,7 +158,7 @@ enum MockData {
                 )
             )
         })
-        return AppReleaseMock(app: app, platformData: platformData, history: history(app: app))
+        return AppReleaseMock(app: app, platformData: platformData, history: history(from: snapshot, app: app))
     }
 
     static let copilotSuggestions: [CopilotSuggestion] = [
@@ -195,7 +195,7 @@ enum MockData {
     static let settingsSections: [SettingsSection] = [
         SettingsSection(id: "account", title: "账号", rows: [
             SettingsRow(id: "team", title: "当前团队", value: "ReleasePilot Team", symbol: "person.2.fill", isEnabled: true),
-            SettingsRow(id: "plan", title: "会员状态", value: "Pro Plan Mock", symbol: "diamond.fill", isEnabled: true)
+            SettingsRow(id: "plan", title: "会员状态", value: "本地演示 Pro", symbol: "diamond.fill", isEnabled: true)
         ]),
         SettingsSection(id: "api", title: "API Key", rows: [
             SettingsRow(id: "openai", title: "OpenAI API Key", value: "未配置", symbol: "key.fill", isEnabled: false),
@@ -203,13 +203,13 @@ enum MockData {
             SettingsRow(id: "gemini", title: "Gemini API Key", value: "未配置", symbol: "sparkles", isEnabled: false)
         ]),
         SettingsSection(id: "models", title: "模型配置", rows: [
-            SettingsRow(id: "default-model", title: "默认模型", value: "GPT-4o Mock", symbol: "brain.head.profile", isEnabled: true),
-            SettingsRow(id: "fallback-model", title: "备用模型", value: "Claude Sonnet Mock", symbol: "arrow.triangle.branch", isEnabled: true),
+            SettingsRow(id: "default-model", title: "默认模型", value: "GPT-4o 演示配置", symbol: "brain.head.profile", isEnabled: true),
+            SettingsRow(id: "fallback-model", title: "备用模型", value: "Claude Sonnet 演示配置", symbol: "arrow.triangle.branch", isEnabled: true),
             SettingsRow(id: "local-cache", title: "本地缓存分析结果", value: "开启", symbol: "internaldrive.fill", isEnabled: true)
         ]),
         SettingsSection(id: "asc", title: "App Store Connect", rows: [
-            SettingsRow(id: "issuer", title: "Issuer ID", value: "Mock Issuer", symbol: "building.2.fill", isEnabled: true),
-            SettingsRow(id: "keyid", title: "Key ID", value: "ABC123MOCK", symbol: "signature", isEnabled: true),
+            SettingsRow(id: "issuer", title: "Issuer ID", value: "前往 ASC 设置配置", symbol: "building.2.fill", isEnabled: true),
+            SettingsRow(id: "keyid", title: "Key ID", value: "前往 ASC 设置配置", symbol: "signature", isEnabled: true),
             SettingsRow(id: "sync", title: "自动同步", value: "关闭", symbol: "arrow.triangle.2.circlepath", isEnabled: false)
         ]),
         SettingsSection(id: "notify", title: "通知设置", rows: [
@@ -311,29 +311,27 @@ enum MockData {
     }
 
     private static func builds(from snapshot: AppStoreConnectAppSnapshot, app: AppItem, platform: Platform) -> [BuildInfo] {
-        let values = snapshot.builds.enumerated().map { index, build in
+        snapshot.builds.enumerated().map { index, build in
             BuildInfo(
-                id: Int(build.version) ?? max(app.buildNumber - index, 1),
+                id: Int(build.version) ?? stableNumericID(for: build.id, fallback: index + 1),
+                buildNumber: build.version.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? build.id : build.version,
                 version: app.version,
                 uploadedAt: formattedASCDate(build.uploadedDate),
-                size: size(for: platform),
+                size: "ASC 未返回",
                 status: readableState(build.processingState),
                 bundleID: snapshot.bundleID,
-                testFlightStatus: readableState(build.processingState),
-                validationResults: ["App Store Connect 同步成功", "Bundle ID：\(snapshot.bundleID)", "SKU：\(snapshot.sku)", "Primary Locale：\(snapshot.primaryLocale)"],
+                testFlightStatus: "ASC 未返回",
+                validationResults: ["App Store Connect 构建读取成功", "Bundle ID：\(snapshot.bundleID)", "Build ID：\(build.id)"],
                 uploadLogs: [
                     "[ASC] App: \(snapshot.name)",
                     "[ASC] Build ID: \(build.id)",
                     "[ASC] Processing State: \(build.processingState)",
                     "[ASC] Uploaded: \(build.uploadedDate.isEmpty ? "Unknown" : build.uploadedDate)"
                 ],
-                submissionStatus: snapshot.appStoreState.map(readableState) ?? "Synced"
+                submissionStatus: snapshot.appStoreState.map(readableState) ?? "Synced",
+                dataSource: .appStoreConnect
             )
         }
-        if !values.isEmpty {
-            return values
-        }
-        return builds(appID: snapshot.id, name: snapshot.name, start: app.buildNumber, version: app.version, size: size(for: platform))
     }
 
     private static func screenshots(appID: String, platform: Platform, incomplete: Set<ReleaseModule>) -> [ScreenshotDevice: [ScreenshotItem]] {
@@ -466,6 +464,25 @@ enum MockData {
         return date.formatted(date: .numeric, time: .shortened)
     }
 
+    private static func stableNumericID(for value: String, fallback: Int) -> Int {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let intValue = Int(trimmed) {
+            return intValue
+        }
+        let scalarSum = trimmed.unicodeScalars.reduce(0) { partial, scalar in
+            partial &+ Int(scalar.value)
+        }
+        return max(scalarSum, fallback)
+    }
+
+    private static func platform(fromASCValue value: String) -> Platform {
+        switch value {
+        case "MAC_OS": .macOS
+        case "IOS": .iOS
+        default: .iOS
+        }
+    }
+
     private static func iconSymbol(for bundleID: String) -> String {
         if bundleID.localizedCaseInsensitiveContains("photo") || bundleID.localizedCaseInsensitiveContains("image") {
             return "photo.fill"
@@ -513,6 +530,25 @@ enum MockData {
                 submittedAt: "2024-05-\(String(format: "%02d", max(1, 25 - index)))"
             )
         }
+    }
+
+    private static func history(from snapshot: AppStoreConnectAppSnapshot, app: AppItem) -> [ReleaseHistoryItem] {
+        snapshot.appStoreVersions.enumerated().map { index, version in
+            ReleaseHistoryItem(
+                id: "\(snapshot.id)-version-\(version.id)",
+                appName: snapshot.name,
+                platform: platform(fromASCValue: version.platform),
+                version: version.versionString,
+                build: matchingBuildNumber(for: version.versionString, in: snapshot.builds) ?? app.buildNumber,
+                status: readableState(version.appStoreState),
+                submittedAt: formattedASCDate(version.createdDate ?? ""),
+                sortKey: version.createdDate ?? "\(String(format: "%05d", snapshot.appStoreVersions.count - index))-\(version.id)"
+            )
+        }
+    }
+
+    private static func matchingBuildNumber(for version: String, in builds: [AppStoreConnectBuildSnapshot]) -> Int? {
+        builds.first { $0.version == version }.flatMap { Int($0.version) }
     }
 
     private static func issues(incomplete: Set<ReleaseModule>, suggestions: [SuggestionItem]) -> [CopilotIssue] {

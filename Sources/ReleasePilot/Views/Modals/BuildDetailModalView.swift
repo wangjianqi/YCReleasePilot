@@ -11,7 +11,7 @@ struct BuildDetailModalView: View {
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
                     info("App 名称", app.name)
                     info("当前版本", build.version)
-                    info("Build 号", "\(build.id)")
+                    info("Build 号", build.buildNumber)
                     info("Bundle ID", build.bundleID)
                     info("上传时间", build.uploadedAt)
                     info("文件大小", build.size)

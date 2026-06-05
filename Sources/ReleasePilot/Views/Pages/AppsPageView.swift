@@ -25,7 +25,7 @@ struct AppsPageView: View {
                                     VStack(alignment: .leading, spacing: 5) {
                                         Text(app.name)
                                             .font(.headline)
-                                        Text("v\(app.version) (\(app.buildNumber))")
+                                        Text(versionText(for: app))
                                             .font(.caption)
                                             .foregroundStyle(Theme.ColorToken.muted)
                                         StatusBadge(title: app.status, tint: app.id == viewModel.selectedAppID ? Theme.ColorToken.blue : Theme.ColorToken.green)
@@ -57,7 +57,7 @@ struct AppsPageView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Apps")
                     .font(.system(size: 26, weight: .bold))
-                Text(viewModel.isUsingAppStoreConnectData ? "来自 App Store Connect 的真实 App 列表，选择 App 后返回 Dashboard 查看发布状态" : "管理本地 Mock App 列表，选择 App 后返回 Dashboard 查看发布状态")
+                Text(viewModel.isUsingAppStoreConnectData ? "来自 App Store Connect 的真实 App 列表，选择 App 后返回 Dashboard 查看发布状态" : "管理本地演示 App 列表，选择 App 后返回 Dashboard 查看发布状态")
                     .font(.caption)
                     .foregroundStyle(Theme.ColorToken.muted)
             }
@@ -89,5 +89,9 @@ struct AppsPageView: View {
         LinearGradient(colors: [Color(hex: 0x0B1423).opacity(0.88), Color(hex: 0x07101D).opacity(0.9)], startPoint: .top, endPoint: .bottom)
             .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.surface, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: Theme.Radius.surface, style: .continuous).stroke(Theme.ColorToken.line, lineWidth: 1))
+    }
+
+    private func versionText(for app: AppItem) -> String {
+        app.buildNumber > 0 ? "v\(app.version) (\(app.buildNumber))" : "v\(app.version)"
     }
 }

@@ -12,9 +12,81 @@ struct AppStoreConnectAppSnapshot: Identifiable, Hashable, Codable {
     var latestVersion: String?
     var appStoreState: String?
     var platform: String?
+    var appStoreVersions: [AppStoreConnectVersionSnapshot]
     var builds: [AppStoreConnectBuildSnapshot]
     var iconImagePath: String?
     var screenshots: [AppStoreConnectScreenshotSnapshot]
+
+    init(
+        id: String,
+        name: String,
+        bundleID: String,
+        sku: String,
+        primaryLocale: String,
+        latestVersionID: String?,
+        latestVersion: String?,
+        appStoreState: String?,
+        platform: String?,
+        appStoreVersions: [AppStoreConnectVersionSnapshot] = [],
+        builds: [AppStoreConnectBuildSnapshot],
+        iconImagePath: String?,
+        screenshots: [AppStoreConnectScreenshotSnapshot]
+    ) {
+        self.id = id
+        self.name = name
+        self.bundleID = bundleID
+        self.sku = sku
+        self.primaryLocale = primaryLocale
+        self.latestVersionID = latestVersionID
+        self.latestVersion = latestVersion
+        self.appStoreState = appStoreState
+        self.platform = platform
+        self.appStoreVersions = appStoreVersions
+        self.builds = builds
+        self.iconImagePath = iconImagePath
+        self.screenshots = screenshots
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case bundleID
+        case sku
+        case primaryLocale
+        case latestVersionID
+        case latestVersion
+        case appStoreState
+        case platform
+        case appStoreVersions
+        case builds
+        case iconImagePath
+        case screenshots
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        bundleID = try container.decode(String.self, forKey: .bundleID)
+        sku = try container.decode(String.self, forKey: .sku)
+        primaryLocale = try container.decode(String.self, forKey: .primaryLocale)
+        latestVersionID = try container.decodeIfPresent(String.self, forKey: .latestVersionID)
+        latestVersion = try container.decodeIfPresent(String.self, forKey: .latestVersion)
+        appStoreState = try container.decodeIfPresent(String.self, forKey: .appStoreState)
+        platform = try container.decodeIfPresent(String.self, forKey: .platform)
+        appStoreVersions = try container.decodeIfPresent([AppStoreConnectVersionSnapshot].self, forKey: .appStoreVersions) ?? []
+        builds = try container.decode([AppStoreConnectBuildSnapshot].self, forKey: .builds)
+        iconImagePath = try container.decodeIfPresent(String.self, forKey: .iconImagePath)
+        screenshots = try container.decode([AppStoreConnectScreenshotSnapshot].self, forKey: .screenshots)
+    }
+}
+
+struct AppStoreConnectVersionSnapshot: Identifiable, Hashable, Codable {
+    let id: String
+    var versionString: String
+    var appStoreState: String
+    var platform: String
+    var createdDate: String?
 }
 
 struct AppStoreConnectBuildSnapshot: Identifiable, Hashable, Codable {
@@ -104,6 +176,7 @@ final class AppStoreConnectAPIService {
                     latestVersion: latestVersion?.attributes.versionString,
                     appStoreState: latestVersion?.attributes.appStoreState,
                     platform: latestVersion?.attributes.platform,
+                    appStoreVersions: versionResources.map(Self.versionSnapshot),
                     builds: latestBuilds.map {
                         AppStoreConnectBuildSnapshot(
                             id: $0.id,
@@ -145,6 +218,7 @@ final class AppStoreConnectAPIService {
             updated.latestVersion = latestVersion?.attributes.versionString ?? snapshot.latestVersion
             updated.appStoreState = latestVersion?.attributes.appStoreState ?? snapshot.appStoreState
             updated.platform = latestVersion?.attributes.platform ?? snapshot.platform
+            updated.appStoreVersions = versionResources.isEmpty ? snapshot.appStoreVersions : versionResources.map(Self.versionSnapshot)
             updated.builds = latestBuilds.map {
                 AppStoreConnectBuildSnapshot(
                     id: $0.id,
@@ -197,6 +271,7 @@ final class AppStoreConnectAPIService {
             updated.latestVersion = latestVersion.attributes.versionString
             updated.appStoreState = latestVersion.attributes.appStoreState
             updated.platform = latestVersion.attributes.platform
+            updated.appStoreVersions = versions.map(Self.versionSnapshot)
             versionID = latestVersion.id
         }
 
@@ -219,12 +294,23 @@ final class AppStoreConnectAPIService {
         let response: ASCListResponse<ASCAppStoreVersionAttributes> = try await request(
             path: "/apps/\(appID)/appStoreVersions",
             queryItems: [
-                URLQueryItem(name: "limit", value: "3"),
-                URLQueryItem(name: "fields[appStoreVersions]", value: "versionString,appStoreState,platform")
+                URLQueryItem(name: "limit", value: "20"),
+                URLQueryItem(name: "sort", value: "-createdDate"),
+                URLQueryItem(name: "fields[appStoreVersions]", value: "versionString,appStoreState,platform,createdDate")
             ],
             token: token
         )
         return response.data
+    }
+
+    private static func versionSnapshot(_ version: ASCResource<ASCAppStoreVersionAttributes>) -> AppStoreConnectVersionSnapshot {
+        AppStoreConnectVersionSnapshot(
+            id: version.id,
+            versionString: version.attributes.versionString,
+            appStoreState: version.attributes.appStoreState,
+            platform: version.attributes.platform,
+            createdDate: version.attributes.createdDate
+        )
     }
 
     private func latestBuilds(appID: String, token: String) async throws -> [ASCResource<ASCBuildAttributes>] {
@@ -515,6 +601,7 @@ private struct ASCAppStoreVersionAttributes: Decodable {
     let versionString: String
     let appStoreState: String
     let platform: String
+    let createdDate: String?
 }
 
 private struct ASCBuildAttributes: Decodable {

@@ -41,6 +41,27 @@ struct ReleaseHistoryItem: Identifiable, Hashable {
     let build: Int
     let status: String
     let submittedAt: String
+    var sortKey: String
+
+    init(
+        id: String,
+        appName: String,
+        platform: Platform,
+        version: String,
+        build: Int,
+        status: String,
+        submittedAt: String,
+        sortKey: String? = nil
+    ) {
+        self.id = id
+        self.appName = appName
+        self.platform = platform
+        self.version = version
+        self.build = build
+        self.status = status
+        self.submittedAt = submittedAt
+        self.sortKey = sortKey ?? submittedAt
+    }
 }
 
 struct ReleasePlan: Hashable {

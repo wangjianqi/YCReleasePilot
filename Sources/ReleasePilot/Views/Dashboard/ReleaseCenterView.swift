@@ -51,7 +51,7 @@ struct ReleaseCenterView: View {
                     }
                     HStack(spacing: 10) {
                         PlatformBadge(platform: viewModel.selectedPlatform)
-                        StatusBadge(title: "v\(viewModel.selectedApp.version) (\(viewModel.selectedApp.buildNumber))", tint: Theme.ColorToken.blue)
+                        StatusBadge(title: viewModel.selectedVersionBuildText, tint: Theme.ColorToken.blue)
                         StatusBadge(title: viewModel.displayedStatus, tint: Theme.ColorToken.green)
                     }
                 }
@@ -153,6 +153,7 @@ struct ReleaseCenterView: View {
                     status: viewModel.displayedStatus,
                     bundleID: viewModel.selectedBundleID,
                     primaryLocale: viewModel.selectedPrimaryLocale,
+                    buildNumber: viewModel.selectedBuildNumberText,
                     dataSourceTitle: viewModel.dataSourceTitle
                 )
                 ReleasePlanSummaryCard(
@@ -182,6 +183,7 @@ struct ReleaseCenterView: View {
             SubmissionHeroCard(
                 app: viewModel.selectedApp,
                 bundleID: viewModel.selectedBundleID,
+                versionBuildText: viewModel.selectedVersionBuildText,
                 dataSourceTitle: viewModel.dataSourceTitle,
                 didSubmit: viewModel.didSubmit,
                 canSubmit: viewModel.canSubmit,
@@ -207,6 +209,7 @@ private struct SubmissionInfoCard: View {
     let status: String
     let bundleID: String
     let primaryLocale: String
+    let buildNumber: String
     let dataSourceTitle: String
 
     var body: some View {
@@ -222,7 +225,7 @@ private struct SubmissionInfoCard: View {
                 info("版本", "\(app.version) (\(app.buildNumber))")
                 info(dataSourceTitle == "App Store Connect" ? "Bundle" : "平台", bundleID)
                 info(dataSourceTitle == "App Store Connect" ? "Locale" : "语言", primaryLocale)
-                info("构建", "\(app.buildNumber)")
+                info("构建", buildNumber)
                 info("准备度", "\(readiness)%")
                 info("状态", status)
                 info("来源", dataSourceTitle)
@@ -282,6 +285,7 @@ private struct ReleasePlanSummaryCard: View {
 private struct SubmissionHeroCard: View {
     let app: AppItem
     let bundleID: String
+    let versionBuildText: String
     let dataSourceTitle: String
     let didSubmit: Bool
     let canSubmit: Bool
@@ -307,7 +311,7 @@ private struct SubmissionHeroCard: View {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(AppStrings.submitTitle)
                             .font(.title3.weight(.bold))
-                        Text("版本: \(app.version) (\(app.buildNumber)) · \(bundleID) · \(dataSourceTitle)")
+                        Text("版本: \(versionBuildText) · \(bundleID) · \(dataSourceTitle)")
                             .font(.caption)
                             .foregroundStyle(Theme.ColorToken.muted)
                             .lineLimit(1)

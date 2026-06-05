@@ -17,7 +17,7 @@ struct BuildCardView: View {
                         .font(.headline)
                     Spacer()
                     SmallGlassButton(
-                        title: isRefreshing ? "更新中" : "更新构建",
+                        title: isRefreshing ? "更新中" : "同步构建",
                         systemImage: isRefreshing ? "arrow.triangle.2.circlepath" : "arrow.clockwise",
                         action: onRefresh
                     )
@@ -27,6 +27,8 @@ struct BuildCardView: View {
 
                 if let current = builds.first {
                     currentBuild(current)
+                } else {
+                    emptyBuildState
                 }
 
                 Text("版本历史")
@@ -39,9 +41,9 @@ struct BuildCardView: View {
                         onShowBuildDetail(build)
                     } label: {
                         HStack {
-                            Text("\(build.id)")
+                            Text("#\(build.buildNumber)")
                                 .font(.caption.weight(.bold))
-                                .frame(width: 30, alignment: .leading)
+                                .frame(width: 70, alignment: .leading)
                             Text(build.version)
                                 .font(.caption)
                             Spacer()
@@ -57,7 +59,7 @@ struct BuildCardView: View {
                     .padding(.vertical, 5)
                 }
 
-                SmallGlassButton(title: "查看更多版本", systemImage: "arrow.right", action: onShowAllVersions)
+                SmallGlassButton(title: "查看更多构建", systemImage: "arrow.right", action: onShowAllVersions)
                     .frame(maxWidth: .infinity)
             }
         }
@@ -66,7 +68,7 @@ struct BuildCardView: View {
     private func currentBuild(_ build: BuildInfo) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Label("Build \(build.id)", systemImage: "sparkles")
+                Label("Build \(build.buildNumber)", systemImage: "shippingbox.fill")
                     .font(.headline)
                     .foregroundStyle(.white)
                 StatusBadge(title: "最新构建", tint: Theme.ColorToken.blue)
@@ -86,6 +88,25 @@ struct BuildCardView: View {
         .overlay(
             RoundedRectangle(cornerRadius: Theme.Radius.small, style: .continuous)
                 .stroke(Theme.ColorToken.lineStrong, lineWidth: 1)
+        )
+    }
+
+    private var emptyBuildState: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("当前 App 暂无 ASC 构建记录", systemImage: "shippingbox")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Theme.ColorToken.soft)
+            Text("同步成功但 App Store Connect 没有返回 builds；ReleasePilot 不会生成模拟构建兜底。")
+                .font(.caption2)
+                .foregroundStyle(Theme.ColorToken.muted)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(Theme.ColorToken.panel.opacity(0.26))
+        .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.small, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.Radius.small, style: .continuous)
+                .stroke(Theme.ColorToken.line, lineWidth: 1)
         )
     }
 

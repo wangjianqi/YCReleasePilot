@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- App Store Connect 构建与版本历史真实数据化：ASC 同步模式下不再为缺失 builds 或 appStoreVersions 生成模拟数据。
 - 发布仪表盘：发布准备度、审核风险、AI 评分可视化
 - 多平台支持：iOS、iPadOS、macOS 三平台发布状态管理
 - 构建版本管理：构建历史、TestFlight 状态、验证结果查看

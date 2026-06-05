@@ -16,7 +16,7 @@ struct AddAppSheet: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("添加 App")
                     .font(.title2.weight(.bold))
-                Text("创建本地 Mock App，用于 ReleasePilot 发布流程演示。")
+                Text("创建本地演示 App，用于 ReleasePilot 发布流程预览。")
                     .font(.caption)
                     .foregroundStyle(Theme.ColorToken.muted)
             }

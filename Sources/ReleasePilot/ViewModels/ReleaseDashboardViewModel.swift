@@ -95,7 +95,7 @@ final class ReleaseDashboardViewModel {
     }
 
     var dataSourceTitle: String {
-        isUsingAppStoreConnectData ? "App Store Connect" : "本地 Mock"
+        isUsingAppStoreConnectData ? "App Store Connect" : "本地演示"
     }
 
     var accountDisplayName: String {
@@ -120,6 +120,17 @@ final class ReleaseDashboardViewModel {
         currentPlatformData.currentBuild
     }
 
+    var selectedBuildNumberText: String {
+        currentBuild?.buildNumber ?? (isUsingAppStoreConnectData ? "暂无构建" : "\(selectedApp.buildNumber)")
+    }
+
+    var selectedVersionBuildText: String {
+        if let currentBuild {
+            return "v\(selectedApp.version) (\(currentBuild.buildNumber))"
+        }
+        return isUsingAppStoreConnectData ? "v\(selectedApp.version)" : "v\(selectedApp.version) (\(selectedApp.buildNumber))"
+    }
+
     var displayedReadiness: Int {
         if canSubmit { return max(selectedApp.readiness, 96) }
         let completedRequired = requiredChecks.filter(\.isComplete).count
@@ -139,7 +150,7 @@ final class ReleaseDashboardViewModel {
     var historyItems: [ReleaseHistoryItem] {
         appReleases.values
             .flatMap(\.history)
-            .sorted { $0.submittedAt > $1.submittedAt }
+            .sorted { $0.sortKey > $1.sortKey }
     }
 
     var suggestions: [SuggestionItem] {

@@ -16,7 +16,7 @@
 
 ReleasePilot 是一款原生 macOS 桌面应用，专为 iOS/macOS 开发者打造，提供 App Store 发布流程的一站式管理。从元数据编辑、截图管理、构建版本追踪到审核提交，全部在一个界面内完成。
 
-> **注意**：当前版本使用 Mock 数据演示，尚未接入真实 API。App Store Connect API 集成和 AI Copilot 功能正在开发中。
+> **注意**：当前版本已接入 App Store Connect 的 App、版本、构建和截图读取；元数据/截图写回、提交审核、AI Copilot 真实 LLM、会员付费等能力仍在开发中。本地演示数据仅在未同步 ASC 或手动添加演示 App 时使用。
 
 ## 功能特性
 
@@ -26,7 +26,7 @@ ReleasePilot 是一款原生 macOS 桌面应用，专为 iOS/macOS 开发者打�
 - **截图管理** — 按设备类型管理截图，支持本地导入、替换、预览
 - **AI Copilot** — 智能助手帮你生成审核备注、优化关键词、分析发布风险
 - **发布流程** — 可视化发布检查清单，确保每个步骤都已完成
-- **App Store Connect** — 支持连接 ASC 账号同步真实 App 数据（开发中）
+- **App Store Connect** — 支持连接 ASC 账号同步真实 App、版本、构建和截图读取数据
 - **接口调试面板** — 监控 API 请求，检测重复调用和风控风险
 - **深色毛玻璃 UI** — 精心设计的深色主题，玻璃拟态风格
 
@@ -80,7 +80,7 @@ open YCReleasePilot.xcodeproj
 Sources/ReleasePilot/
 ├── ReleasePilotApp.swift          # 应用入口
 ├── Data/
-│   └── MockData.swift             # Mock 数据生成
+│   └── MockData.swift             # 本地演示数据与 ASC 快照展示映射
 ├── Models/                        # 数据模型（值类型）
 │   ├── AppItem.swift              # App 模型
 │   ├── BuildInfo.swift            # 构建版本
@@ -130,7 +130,7 @@ Sources/ReleasePilot/
 
 ## 路线图
 
-- [ ] App Store Connect API 完整集成
+- [ ] App Store Connect 写操作完整集成（元数据、截图、审核备注、提交审核）
 - [ ] AI Copilot 接入真实 LLM（OpenAI / Claude / Gemini）
 - [ ] 多语言本地化
 - [ ] 截图自动裁剪与适配
