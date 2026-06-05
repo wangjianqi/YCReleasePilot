@@ -56,7 +56,7 @@ struct AppsPageView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Apps")
                     .font(.system(size: 26, weight: .bold))
-                Text("管理本地 Mock App 列表，选择 App 后返回 Dashboard 查看发布状态")
+                Text(viewModel.isUsingAppStoreConnectData ? "来自 App Store Connect 的真实 App 列表，选择 App 后返回 Dashboard 查看发布状态" : "管理本地 Mock App 列表，选择 App 后返回 Dashboard 查看发布状态")
                     .font(.caption)
                     .foregroundStyle(Theme.ColorToken.muted)
             }

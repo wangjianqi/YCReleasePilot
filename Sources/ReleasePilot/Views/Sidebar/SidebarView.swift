@@ -155,18 +155,19 @@ struct SidebarView: View {
             HStack(spacing: 10) {
                 ZStack {
                     Circle().fill(Theme.ColorToken.text)
-                    Text("张")
+                    Text(viewModel.accountAvatarText)
                         .font(.system(size: 14, weight: .bold))
                         .foregroundStyle(Theme.ColorToken.panel)
                 }
                 .frame(width: 38, height: 38)
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(AppStrings.userName)
+                    Text(viewModel.accountDisplayName)
                         .font(.system(size: 13, weight: .semibold))
-                    Text(AppStrings.userEmail)
+                    Text(viewModel.accountDisplaySubtitle)
                         .font(.caption)
                         .foregroundStyle(Theme.ColorToken.muted)
+                        .lineLimit(1)
                 }
                 Spacer()
                 Image(systemName: showingAccountMenu ? "chevron.up" : "chevron.down")

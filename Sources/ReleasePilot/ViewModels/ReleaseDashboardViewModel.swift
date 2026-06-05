@@ -31,6 +31,9 @@ final class ReleaseDashboardViewModel {
     var showReleaseDetails = false
     var isSyncingAppStoreConnect = false
     var appStoreConnectSyncMessage: String?
+    var isUsingAppStoreConnectData = false
+    var appStoreConnectAccountTitle: String?
+    var appStoreConnectAccountSubtitle: String?
 
     private let appStoreConnectConfigService: AppStoreConnectConfigService
     private let appStoreConnectAPIService: AppStoreConnectAPIService
@@ -81,6 +84,22 @@ final class ReleaseDashboardViewModel {
 
     var selectedApp: AppItem {
         selectedRelease.app
+    }
+
+    var dataSourceTitle: String {
+        isUsingAppStoreConnectData ? "App Store Connect" : "本地 Mock"
+    }
+
+    var accountDisplayName: String {
+        appStoreConnectAccountTitle ?? AppStrings.userName
+    }
+
+    var accountDisplaySubtitle: String {
+        appStoreConnectAccountSubtitle ?? AppStrings.userEmail
+    }
+
+    var accountAvatarText: String {
+        String(accountDisplayName.prefix(1)).uppercased()
     }
 
     var currentBuild: BuildInfo? {
@@ -179,6 +198,16 @@ final class ReleaseDashboardViewModel {
         currentPlatformData.releasePlan
     }
 
+    var selectedBundleID: String {
+        guard isUsingAppStoreConnectData else { return "iOS, iPadOS, macOS" }
+        return valueFromMetadataSubtitle(at: 1) ?? "Unknown Bundle ID"
+    }
+
+    var selectedPrimaryLocale: String {
+        guard isUsingAppStoreConnectData else { return "5 种语言" }
+        return valueFromMetadataSubtitle(at: 0) ?? "Unknown Locale"
+    }
+
     var settingsSections: [SettingsSection] {
         MockData.settingsSections
     }
@@ -222,6 +251,9 @@ final class ReleaseDashboardViewModel {
     func addAppFromDraft(_ draft: AppDraft) {
         guard draft.canSave else { return }
         let release = MockData.makeRelease(from: draft, existingIDs: Set(appReleases.keys))
+        isUsingAppStoreConnectData = false
+        appStoreConnectAccountTitle = nil
+        appStoreConnectAccountSubtitle = nil
         appReleases[release.app.id] = release
         appOrder.append(release.app.id)
         selectedAppID = release.app.id
@@ -262,16 +294,21 @@ final class ReleaseDashboardViewModel {
                     showToast(appStoreConnectSyncMessage ?? "同步失败")
                     return
                 }
+                let firstRelease = releases[0]
+                let firstPlatform = defaultPlatform(from: snapshots[0].platform)
                 appReleases = Dictionary(uniqueKeysWithValues: releases.map { ($0.app.id, $0) })
                 appOrder = releases.map(\.app.id)
-                selectedAppID = releases[0].app.id
-                selectedPlatform = defaultPlatform(from: snapshots[0].platform)
-                selectedScreenshotDevice = defaultScreenshotDevice(for: selectedPlatform)
+                isUsingAppStoreConnectData = true
+                appStoreConnectAccountTitle = config.teamID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "ASC 已连接" : "Team \(config.teamID)"
+                appStoreConnectAccountSubtitle = config.issuerID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "App Store Connect" : "Issuer \(String(config.issuerID.prefix(8)))..."
+                selectedPlatform = firstPlatform
+                selectedScreenshotDevice = defaultScreenshotDevice(for: firstPlatform)
                 focusedModule = nil
                 didSubmit = false
                 blockedSubmitMessage = nil
-                releasePlanDraft = selectedRelease.data(for: selectedPlatform).releasePlan
-                copilotMessages = MockData.initialCopilotMessages(for: selectedRelease, platform: selectedPlatform)
+                releasePlanDraft = firstRelease.data(for: firstPlatform).releasePlan
+                copilotMessages = MockData.initialCopilotMessages(for: firstRelease, platform: firstPlatform)
+                selectedAppID = firstRelease.app.id
                 appStoreConnectSyncMessage = "已同步 \(releases.count) 个 App Store Connect App"
                 showToast(appStoreConnectSyncMessage ?? "同步成功")
             } catch {
@@ -476,6 +513,14 @@ final class ReleaseDashboardViewModel {
         case "MAC_OS": .macOS
         default: .iOS
         }
+    }
+
+    private func valueFromMetadataSubtitle(at index: Int) -> String? {
+        let parts = currentPlatformData.metadata.subtitle
+            .split(separator: "·")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+        guard parts.indices.contains(index), !parts[index].isEmpty else { return nil }
+        return parts[index]
     }
 
     private func save(_ data: PlatformReleaseMock, in release: inout AppReleaseMock) {

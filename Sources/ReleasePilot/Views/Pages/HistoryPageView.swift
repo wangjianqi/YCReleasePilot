@@ -9,7 +9,7 @@ struct HistoryPageView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("History")
                         .font(.system(size: 26, weight: .bold))
-                    Text("Mock 发布历史，包含版本、平台、提交时间和审核状态")
+                    Text(viewModel.isUsingAppStoreConnectData ? "来自 App Store Connect 同步的版本和构建历史" : "Mock 发布历史，包含版本、平台、提交时间和审核状态")
                         .font(.caption)
                         .foregroundStyle(Theme.ColorToken.muted)
                 }

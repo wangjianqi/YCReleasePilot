@@ -5,6 +5,7 @@ enum MainPage: String, CaseIterable, Identifiable {
     case apps
     case history
     case settings
+    case debug
 
     var id: String { rawValue }
 
@@ -14,6 +15,7 @@ enum MainPage: String, CaseIterable, Identifiable {
         case .apps: "Apps"
         case .history: "History"
         case .settings: "Settings"
+        case .debug: "Debug"
         }
     }
 
@@ -23,6 +25,7 @@ enum MainPage: String, CaseIterable, Identifiable {
         case .apps: "app.dashed"
         case .history: "clock"
         case .settings: "gearshape"
+        case .debug: "ladybug"
         }
     }
 }

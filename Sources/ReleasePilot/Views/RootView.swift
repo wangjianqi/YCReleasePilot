@@ -148,14 +148,14 @@ struct RootView: View {
             copilotViewModel.loadSession(
                 for: viewModel.selectedApp.id,
                 platform: viewModel.selectedPlatform,
-                initialMessages: MockData.initialCopilotMessages(for: viewModel.selectedRelease, platform: viewModel.selectedPlatform)
+                initialMessages: viewModel.copilotMessages
             )
         }
         .onChange(of: viewModel.selectedPlatform) { _, platform in
             copilotViewModel.loadSession(
                 for: viewModel.selectedApp.id,
                 platform: platform,
-                initialMessages: MockData.initialCopilotMessages(for: viewModel.selectedRelease, platform: platform)
+                initialMessages: viewModel.copilotMessages
             )
         }
     }
@@ -180,6 +180,8 @@ struct RootView: View {
             HistoryPageView(viewModel: viewModel)
         case .settings:
             SettingsPageView(settingsViewModel: settingsViewModel)
+        case .debug:
+            DebugPageView()
         }
     }
 

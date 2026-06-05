@@ -143,7 +143,10 @@ struct ReleaseCenterView: View {
                 SubmissionInfoCard(
                     app: viewModel.selectedApp,
                     readiness: viewModel.displayedReadiness,
-                    status: viewModel.displayedStatus
+                    status: viewModel.displayedStatus,
+                    bundleID: viewModel.selectedBundleID,
+                    primaryLocale: viewModel.selectedPrimaryLocale,
+                    dataSourceTitle: viewModel.dataSourceTitle
                 )
                 ReleasePlanSummaryCard(
                     releasePlanSummary: viewModel.releasePlan.summary,
@@ -169,6 +172,8 @@ struct ReleaseCenterView: View {
 
             SubmissionHeroCard(
                 app: viewModel.selectedApp,
+                bundleID: viewModel.selectedBundleID,
+                dataSourceTitle: viewModel.dataSourceTitle,
                 didSubmit: viewModel.didSubmit,
                 canSubmit: viewModel.canSubmit,
                 blockedMessage: viewModel.blockedSubmitMessage ?? viewModel.blockingWarnings.first,
@@ -191,6 +196,9 @@ private struct SubmissionInfoCard: View {
     let app: AppItem
     let readiness: Int
     let status: String
+    let bundleID: String
+    let primaryLocale: String
+    let dataSourceTitle: String
 
     var body: some View {
         GlassCard {
@@ -203,11 +211,12 @@ private struct SubmissionInfoCard: View {
                 }
                 info("应用", app.name)
                 info("版本", "\(app.version) (\(app.buildNumber))")
-                info("平台", "iOS, iPadOS, macOS")
-                info("语言", "5 种语言")
+                info(dataSourceTitle == "App Store Connect" ? "Bundle" : "平台", bundleID)
+                info(dataSourceTitle == "App Store Connect" ? "Locale" : "语言", primaryLocale)
                 info("构建", "\(app.buildNumber)")
                 info("准备度", "\(readiness)%")
                 info("状态", status)
+                info("来源", dataSourceTitle)
             }
         }
     }
@@ -216,7 +225,7 @@ private struct SubmissionInfoCard: View {
         HStack(alignment: .firstTextBaseline) {
             Text(label)
                 .foregroundStyle(Theme.ColorToken.muted)
-                .frame(width: 58, alignment: .leading)
+                .frame(width: 54, alignment: .leading)
             Text(value)
                 .fontWeight(.semibold)
                 .lineLimit(1)
@@ -263,6 +272,8 @@ private struct ReleasePlanSummaryCard: View {
 
 private struct SubmissionHeroCard: View {
     let app: AppItem
+    let bundleID: String
+    let dataSourceTitle: String
     let didSubmit: Bool
     let canSubmit: Bool
     let blockedMessage: String?
@@ -287,9 +298,10 @@ private struct SubmissionHeroCard: View {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(AppStrings.submitTitle)
                             .font(.title3.weight(.bold))
-                        Text("版本: \(app.version) (\(app.buildNumber)) · iOS/iPadOS/macOS")
+                        Text("版本: \(app.version) (\(app.buildNumber)) · \(bundleID) · \(dataSourceTitle)")
                             .font(.caption)
                             .foregroundStyle(Theme.ColorToken.muted)
+                            .lineLimit(1)
                     }
                     Spacer()
                 }
