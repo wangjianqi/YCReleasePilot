@@ -15,3 +15,17 @@ struct StatusBadge: View {
             .overlay(Capsule().stroke(tint.opacity(0.24), lineWidth: 1))
     }
 }
+
+struct PlatformBadge: View {
+    let platform: Platform
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: platform.symbol)
+                .font(.caption2.weight(.semibold))
+            Text(platform.rawValue)
+                .font(.caption2.weight(.semibold))
+        }
+        .foregroundStyle(Theme.ColorToken.muted)
+    }
+}

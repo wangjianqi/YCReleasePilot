@@ -49,9 +49,7 @@ struct ReleaseCenterView: View {
                             .foregroundStyle(Theme.ColorToken.muted)
                     }
                     HStack(spacing: 10) {
-                        Text("iOS, iPadOS, macOS")
-                            .font(.caption)
-                            .foregroundStyle(Theme.ColorToken.muted)
+                        PlatformBadge(platform: viewModel.selectedPlatform)
                         StatusBadge(title: "v\(viewModel.selectedApp.version) (\(viewModel.selectedApp.buildNumber))", tint: Theme.ColorToken.blue)
                         StatusBadge(title: viewModel.displayedStatus, tint: Theme.ColorToken.green)
                     }
